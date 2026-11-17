@@ -1,0 +1,40 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        调色板：所有画刷都在这里声明一次，ThemeService 在运行时直接修改它们的 Color。
+        默认值等同于深色主题，这样设计器和离屏渲染在 Initialize 之前也有可用的颜色。
+    -->
+    <SolidColorBrush x:Key="BgBrush" Color="#1B1B1F" />
+    <SolidColorBrush x:Key="PopupBgBrush" Color="#1B1B1F" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#232329" />
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="#2B2B33" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#2B2B33" />
+    <SolidColorBrush x:Key="SelectedBrush" Color="#26334A" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#34343D" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F2F3F7" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9A9DA8" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#5B9DFF" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1E3556" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#FF6B6B" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#63D68B" />
+    <SolidColorBrush x:Key="TrackOffBrush" Color="#3A3A44" />
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#42424D" />
+    <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#5A5A68" />
+    <SolidColorBrush x:Key="ScrimBrush" Color="#8C000000" />
+    <!-- 覆盖在背景图/磨砂之上的半透明底色，保证文字对比度。 -->
+    <SolidColorBrush x:Key="WindowTintBrush" Color="#1B1B1F" />
+
+    <!-- 背景图由 ThemeService 在运行时填入 ImageSource 与 Opacity。 -->
+    <ImageBrush x:Key="BackgroundImageBrush"
+                Stretch="UniformToFill"
+                AlignmentX="Center"
+                AlignmentY="Center"
+                Opacity="0.55" />
+
+    <!-- 卡片玻璃材质与描边，由 ThemeService 按环境光与不透明度重算。 -->
+    <SolidColorBrush x:Key="GlassBrush" Color="#B8232329" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#26FFFFFF" />
+    <SolidColorBrush x:Key="NavActiveBrush" Color="#B8243A5C" />
+</ResourceDictionary>

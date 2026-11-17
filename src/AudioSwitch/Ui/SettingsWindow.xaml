@@ -1,0 +1,829 @@
+<Window x:Class="AudioSwitch.Ui.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="AudioSwitch"
+        Width="760"
+        Height="720"
+        MinWidth="720"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="Transparent"
+        FontFamily="{StaticResource UiFont}"
+        FontSize="13"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        TextOptions.TextFormattingMode="Ideal"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="46"
+                            ResizeBorderThickness="6"
+                            CornerRadius="0"
+                            GlassFrameThickness="0"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid>
+        <!-- 背景层：底色、背景图片、可读性遮罩；标题栏与内容共用，避免出现色块分界。 -->
+        <Rectangle x:Name="TintLayer" Fill="{DynamicResource WindowTintBrush}" />
+        <Rectangle x:Name="BackgroundImageLayer" Fill="{DynamicResource BackgroundImageBrush}" />
+        <Rectangle x:Name="ScrimLayer" Fill="{DynamicResource ScrimBrush}" />
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="46" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="38" />
+            </Grid.RowDefinitions>
+
+            <!-- 一体化标题栏 -->
+            <Grid Grid.Row="0" Margin="16,6,8,0" Background="Transparent">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="26"
+                            Height="26"
+                            Background="{DynamicResource AccentSoftBrush}"
+                            CornerRadius="8">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{StaticResource IconFont}"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   Text="&#xE767;" />
+                    </Border>
+                    <TextBlock x:Name="TitleText"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Text="AudioSwitch" />
+                    <TextBlock Margin="8,1,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Text="输出设备切换器" />
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <Button x:Name="MinButton"
+                            Style="{StaticResource TitleBarButton}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Content="&#xE921;"
+                            ToolTip="最小化"
+                            Click="MinButton_Click" />
+                    <Button x:Name="CloseButton"
+                            Style="{StaticResource CloseTitleBarButton}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                            Content="&#xE8BB;"
+                            ToolTip="关闭"
+                            Click="CloseButton_Click" />
+                </StackPanel>
+            </Grid>
+
+            <!-- 主体：左侧分类 + 右侧页面 -->
+            <Grid Grid.Row="1" Margin="14,2,18,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="168" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,6,12,0">
+                    <RadioButton x:Name="NavGeneral"
+                                 Style="{StaticResource NavItem}"
+                                 GroupName="SettingsPage"
+                                 Tag="general"
+                                 IsChecked="True"
+                                 Checked="NavItem_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,9,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="13"
+                                       Text="&#xE80F;" />
+                            <TextBlock VerticalAlignment="Center" Text="常规" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavAppearance"
+                                 Style="{StaticResource NavItem}"
+                                 GroupName="SettingsPage"
+                                 Tag="appearance"
+                                 Checked="NavItem_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,9,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="13"
+                                       Text="&#xE790;" />
+                            <TextBlock VerticalAlignment="Center" Text="外观" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavPopup"
+                                 Style="{StaticResource NavItem}"
+                                 GroupName="SettingsPage"
+                                 Tag="popup"
+                                 Checked="NavItem_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,9,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="13"
+                                       Text="&#xE7F4;" />
+                            <TextBlock VerticalAlignment="Center" Text="切换弹窗" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavHotkey"
+                                 Style="{StaticResource NavItem}"
+                                 GroupName="SettingsPage"
+                                 Tag="hotkey"
+                                 Checked="NavItem_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,9,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="13"
+                                       Text="&#xE765;" />
+                            <TextBlock VerticalAlignment="Center" Text="快捷键" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavAbout"
+                                 Style="{StaticResource NavItem}"
+                                 GroupName="SettingsPage"
+                                 Tag="about"
+                                 Checked="NavItem_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,9,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="13"
+                                       Text="&#xE946;" />
+                            <TextBlock VerticalAlignment="Center" Text="关于" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <Button x:Name="OpenSwitcherButton"
+                            Margin="0,18,0,0"
+                            HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButton}"
+                            Click="OpenSwitcher_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,7,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="12"
+                                       Text="&#xE8A7;" />
+                            <TextBlock VerticalAlignment="Center" Text="切换设备" />
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Margin="4,10,0,0"
+                               FontSize="10.5"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Text="也可以按全局热键，或单击托盘图标。" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Column="1"
+                              Padding="0,0,6,0"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="0,4,0,12">
+
+                        <!-- ========== 常规 ========== -->
+                        <StackPanel x:Name="PageGeneral">
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="当前输出设备" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="44"
+                                            Height="44"
+                                            Background="{DynamicResource AccentSoftBrush}"
+                                            CornerRadius="12">
+                                        <TextBlock x:Name="CurrentDeviceIcon"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontFamily="{StaticResource IconFont}"
+                                                   FontSize="20"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="&#xE767;" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                                        <TextBlock x:Name="CurrentDeviceName"
+                                                   FontSize="15"
+                                                   FontWeight="SemiBold"
+                                                   Text="正在读取…"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock x:Name="CurrentDeviceSubtitle"
+                                                   Margin="0,3,0,0"
+                                                   FontSize="11.5"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
+                                        <Button Style="{StaticResource GhostButton}" Click="OpenSwitcher_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Margin="0,0,6,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="{StaticResource IconFont}"
+                                                           FontSize="12"
+                                                           Text="&#xE8A7;" />
+                                                <TextBlock VerticalAlignment="Center" Text="切换" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Margin="4,0,0,0"
+                                                Style="{StaticResource IconButton}"
+                                                ToolTip="打开 Windows 声音设置"
+                                                Click="OpenSoundSettings_Click"
+                                                Content="&#xE8B8;" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="启动与行为" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Border Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="开机自动启动" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="登录 Windows 后在托盘静默启动" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="StartWithWindowsToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="StartWithWindowsToggle_Click" />
+                                        </Grid>
+                                    </Border>
+                                    <Border Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="关闭窗口时最小化到托盘" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="关闭后仍可通过托盘图标或热键快速切换" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="CloseToTrayToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="CloseToTrayToggle_Click" />
+                                        </Grid>
+                                    </Border>
+                                    <Border Margin="0" Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="同时设置通信设备" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="通话、会议应用的默认输入输出保持一致" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="SwitchCommunicationsToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="SwitchCommunicationsToggle_Click" />
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="快速操作" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Border Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="切换输出设备" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="打开设备列表，也可以直接按全局热键" />
+                                            </StackPanel>
+                                            <Button HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource GhostButton}"
+                                                    Click="OpenSwitcher_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Margin="0,0,6,0"
+                                                               VerticalAlignment="Center"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="12"
+                                                               Text="&#xE8A7;" />
+                                                    <TextBlock VerticalAlignment="Center" Text="打开" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="Windows 声音设置" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="管理音量、麦克风与单应用音频路由" />
+                                            </StackPanel>
+                                            <Button HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource GhostButton}"
+                                                    Click="OpenSoundSettings_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Margin="0,0,6,0"
+                                                               VerticalAlignment="Center"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="12"
+                                                               Text="&#xE8B8;" />
+                                                    <TextBlock VerticalAlignment="Center" Text="打开" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Margin="0" Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="运行日志" />
+                                                <TextBlock x:Name="LogPathText"
+                                                           Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="查看启动、切换与错误记录" />
+                                            </StackPanel>
+                                            <Button HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource GhostButton}"
+                                                    Click="OpenLog_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Margin="0,0,6,0"
+                                                               VerticalAlignment="Center"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="12"
+                                                               Text="&#xE8A5;" />
+                                                    <TextBlock VerticalAlignment="Center" Text="打开" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel x:Name="PageAppearance" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="主题与配色" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="明暗主题" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="跟随系统时随 Windows 明暗自动切换" />
+                                        </StackPanel>
+                                        <Border HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="9"
+                                                Padding="2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="ThemeSystemRadio" Style="{StaticResource SegmentedOption}" GroupName="ThemeMode" Tag="system" Content="跟随系统" Checked="ThemeRadio_Checked" />
+                                                <RadioButton x:Name="ThemeLightRadio" Style="{StaticResource SegmentedOption}" GroupName="ThemeMode" Tag="light" Content="浅色" Checked="ThemeRadio_Checked" />
+                                                <RadioButton x:Name="ThemeDarkRadio" Style="{StaticResource SegmentedOption}" GroupName="ThemeMode" Tag="dark" Content="深色" Checked="ThemeRadio_Checked" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Grid Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <TextBlock Text="配色来源" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="固定配色，或从图片 / Windows 主题取色" />
+                                        </StackPanel>
+                                        <Border HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="9"
+                                                Padding="2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="ColorSystemRadio" Style="{StaticResource SegmentedOption}" GroupName="ColorSource" Tag="system" Content="跟随 Windows" Checked="ColorSourceRadio_Checked" />
+                                                <RadioButton x:Name="ColorFixedRadio" Style="{StaticResource SegmentedOption}" GroupName="ColorSource" Tag="fixed" Content="固定配色" Checked="ColorSourceRadio_Checked" />
+                                                <RadioButton x:Name="ColorImageRadio" Style="{StaticResource SegmentedOption}" GroupName="ColorSource" Tag="image" Content="取图颜色" Checked="ColorSourceRadio_Checked" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <StackPanel x:Name="AccentPanel" Margin="0,4,0,0" Orientation="Horizontal">
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#5B9DFF" Tag="#5B9DFF" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#6C7BFF" Tag="#6C7BFF" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#A970FF" Tag="#A970FF" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#FF6FB5" Tag="#FF6FB5" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#FF6B6B" Tag="#FF6B6B" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#FFA654" Tag="#FFA654" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#4ECB71" Tag="#4ECB71" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <RadioButton Style="{StaticResource AccentSwatch}" Background="#35C7C2" Tag="#35C7C2" GroupName="Accent" Checked="AccentSwatch_Checked" />
+                                        <Button Style="{StaticResource GhostButton}" Click="CustomAccent_Click" Content="自定义…" />
+                                    </StackPanel>
+                                    <TextBlock x:Name="ColorHintText"
+                                               Style="{StaticResource SettingHint}"
+                                               Text="挑选一个强调色，或点“自定义…”使用系统取色器。" />
+
+                                    <Grid Margin="0,16,0,0">
+                                        <TextBlock Text="窗口材质" VerticalAlignment="Center" />
+                                        <Border HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="9"
+                                                Padding="2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="MaterialAcrylicRadio" Style="{StaticResource SegmentedOption}" GroupName="Material" Tag="acrylic" Content="磨砂玻璃" Checked="MaterialRadio_Checked" />
+                                                <RadioButton x:Name="MaterialSolidRadio" Style="{StaticResource SegmentedOption}" GroupName="Material" Tag="solid" Content="纯色" Checked="MaterialRadio_Checked" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock x:Name="MaterialHintText"
+                                               Style="{StaticResource SettingHint}"
+                                               Text="磨砂玻璃会透出桌面与背景图片" />
+
+                                    <Grid Margin="0,16,0,0">
+                                        <TextBlock Text="卡片不透明度" />
+                                        <TextBlock x:Name="GlassOpacityText"
+                                                   HorizontalAlignment="Right"
+                                                   FontSize="11.5"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   Text="72%" />
+                                    </Grid>
+                                    <Slider x:Name="GlassOpacitySlider"
+                                            Margin="0,6,0,0"
+                                            Style="{StaticResource OpacitySlider}"
+                                            Minimum="20"
+                                            Maximum="100"
+                                            TickFrequency="5"
+                                            ValueChanged="GlassOpacitySlider_ValueChanged" />
+                                    <TextBlock Style="{StaticResource SettingHint}"
+                                               Text="数值越低，卡片越通透、背景越明显。" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Margin="4,10,0,8" Style="{StaticResource SectionLabel}" Text="背景图片" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="52"
+                                                Height="52"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="10"
+                                                ClipToBounds="True">
+                                            <Image x:Name="BackgroundThumb" Stretch="UniformToFill" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                                            <TextBlock x:Name="BackgroundNameText"
+                                                       Text="未设置，使用纯色或磨砂背景"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="支持 PNG、JPG、BMP、GIF、TIFF" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
+                                            <Button Style="{StaticResource GhostButton}" Click="ChooseBackground_Click" Content="选择…" />
+                                            <Button x:Name="ClearBackgroundButton"
+                                                    Margin="4,0,0,0"
+                                                    Style="{StaticResource GhostButton}"
+                                                    Click="ClearBackground_Click"
+                                                    Content="清除" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel x:Name="BackgroundOptionsPanel" Margin="0,14,0,0">
+                                        <Grid>
+                                            <TextBlock Text="背景不透明度" />
+                                            <TextBlock x:Name="OpacityValueText"
+                                                       HorizontalAlignment="Right"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="55%" />
+                                        </Grid>
+                                        <Slider x:Name="OpacitySliderControl"
+                                                Margin="0,6,0,0"
+                                                Style="{StaticResource OpacitySlider}"
+                                                Minimum="20"
+                                                Maximum="100"
+                                                TickFrequency="5"
+                                                ValueChanged="OpacitySlider_ValueChanged" />
+                                        <Grid Margin="0,12,0,0">
+                                            <StackPanel>
+                                                <TextBlock Text="模糊背景" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="柔化图片，让文字更易读" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="BlurToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="BlurToggle_Click" />
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========== 切换弹窗 ========== -->
+                        <StackPanel x:Name="PagePopup" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="外观与布局" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="样式" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="磁贴类似 Alt+Tab，列表更紧凑" />
+                                        </StackPanel>
+                                        <Border HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="9"
+                                                Padding="2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="PopupStyleCardsRadio" Style="{StaticResource SegmentedOption}" GroupName="PopupStyle" Tag="cards" Content="磁贴" Checked="PopupStyleRadio_Checked" />
+                                                <RadioButton x:Name="PopupStyleListRadio" Style="{StaticResource SegmentedOption}" GroupName="PopupStyle" Tag="list" Content="列表" Checked="PopupStyleRadio_Checked" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Grid x:Name="PopupColumnsRow" Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="每行数量" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="“自动”按设备数量决定列数" />
+                                        </StackPanel>
+                                        <Border HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="9"
+                                                Padding="2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="PopupColumnsAutoRadio" Style="{StaticResource SegmentedOption}" GroupName="PopupColumns" Tag="0" Content="自动" Checked="PopupColumnsRadio_Checked" />
+                                                <RadioButton x:Name="PopupColumns2Radio" Style="{StaticResource SegmentedOption}" GroupName="PopupColumns" Tag="2" Content="2" Checked="PopupColumnsRadio_Checked" />
+                                                <RadioButton x:Name="PopupColumns3Radio" Style="{StaticResource SegmentedOption}" GroupName="PopupColumns" Tag="3" Content="3" Checked="PopupColumnsRadio_Checked" />
+                                                <RadioButton x:Name="PopupColumns4Radio" Style="{StaticResource SegmentedOption}" GroupName="PopupColumns" Tag="4" Content="4" Checked="PopupColumnsRadio_Checked" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Grid Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="弹出位置" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="屏幕中央更接近 Alt+Tab 的观感" />
+                                        </StackPanel>
+                                        <Border HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="9"
+                                                Padding="2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="PopupPositionCenterRadio" Style="{StaticResource SegmentedOption}" GroupName="PopupPosition" Tag="center" Content="屏幕中央" Checked="PopupPositionRadio_Checked" />
+                                                <RadioButton x:Name="PopupPositionCursorRadio" Style="{StaticResource SegmentedOption}" GroupName="PopupPosition" Tag="cursor" Content="鼠标附近" Checked="PopupPositionRadio_Checked" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Border Margin="0,10,0,0"
+                                            Background="Transparent"
+                                            Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="显示设备图标" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="按设备类型显示耳机、显示器等图标" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="PopupShowIconsToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="PopupShowIconsToggle_Click" />
+                                        </Grid>
+                                    </Border>
+                                    <Border Margin="0,10,0,0"
+                                            Background="Transparent"
+                                            Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="切换后自动关闭" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="关闭后可留在弹窗里继续调整" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="PopupCloseOnSwitchToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="PopupCloseOnSwitchToggle_Click" />
+                                        </Grid>
+                                    </Border>
+                                    <Border Margin="0,10,0,0"
+                                            Background="Transparent"
+                                            Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="淡入动画" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="打开时轻微上浮并淡入" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="AnimationToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="AnimationToggle_Click" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Button Margin="0,4,0,0"
+                                            HorizontalAlignment="Left"
+                                            Style="{StaticResource GhostButton}"
+                                            Click="PreviewPopup_Click"
+                                            Content="预览弹窗" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========== 快捷键 ========== -->
+                        <StackPanel x:Name="PageHotkey" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="全局快捷键" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Border Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="启用全局快捷键" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="关闭后仍可从托盘图标切换设备" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="HotkeyEnabledToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="HotkeyEnabledToggle_Click" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Border x:Name="HotkeyRecorder"
+                                            Margin="0,6,0,0"
+                                            Padding="14,12"
+                                            Background="{DynamicResource SurfaceAltBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Cursor="Hand"
+                                            Focusable="True"
+                                            PreviewKeyDown="HotkeyRecorder_PreviewKeyDown"
+                                            MouseLeftButtonUp="HotkeyRecorder_MouseLeftButtonUp"
+                                            LostKeyboardFocus="HotkeyRecorder_LostKeyboardFocus">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock x:Name="HotkeyDisplay"
+                                                           FontSize="17"
+                                                           FontWeight="SemiBold"
+                                                           Text="Ctrl+Alt+A" />
+                                                <TextBlock x:Name="HotkeyStatusText"
+                                                           Margin="0,5,0,0"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="已生效" />
+                                            </StackPanel>
+                                            <Button x:Name="ResetHotkeyButton"
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource GhostButton}"
+                                                    Click="ResetHotkey_Click"
+                                                    Content="恢复默认" />
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock x:Name="HotkeyHintText"
+                                               Style="{StaticResource SettingHint}"
+                                               Text="单击上方区域后直接按下组合键即可修改；支持字母、数字、F1–F24；字母数字需搭配 Ctrl、Alt、Shift 或 Win。" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========== 关于 ========== -->
+                        <StackPanel x:Name="PageAbout" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="关于" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="56"
+                                                Height="56"
+                                                VerticalAlignment="Top"
+                                                Background="{DynamicResource SurfaceAltBrush}"
+                                                CornerRadius="12"
+                                                ClipToBounds="True">
+                                            <Image Width="56"
+                                                   Height="56"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                   Source="pack://application:,,,/Assets/app.png" />
+                                        </Border>
+                                        <StackPanel Margin="14,2,0,0" VerticalAlignment="Center">
+                                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="AudioSwitch" />
+                                            <TextBlock x:Name="AboutVersionText"
+                                                       Margin="0,3,0,0"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="版本 1.2.0" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <TextBlock Margin="0,14,0,0"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Text="通过 Windows Core Audio 切换默认输出设备，常驻托盘，支持全局热键。" />
+                                    <Grid Margin="0,14,0,0">
+                                        <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" Text="配置文件" />
+                                        <TextBlock x:Name="SettingsPathText"
+                                                   HorizontalAlignment="Right"
+                                                   FontSize="11.5"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                    <Grid Margin="0,8,0,0">
+                                        <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" Text="日志文件" />
+                                        <TextBlock HorizontalAlignment="Right"
+                                                   FontSize="11.5"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   Text="audioSwitch.log" />
+                                    </Grid>
+                                    <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
+                                        <Button Style="{StaticResource GhostButton}" Click="OpenLog_Click" Content="打开日志" />
+                                        <Button Margin="4,0,0,0" Style="{StaticResource GhostButton}" Click="OpenSoundSettings_Click" Content="系统声音设置" />
+                                        <Button Margin="4,0,0,0" Style="{StaticResource GhostButton}" Click="UnblockExe_Click" Content="解除文件锁定" />
+                                    </StackPanel>
+                                    <TextBlock Margin="0,14,0,0"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               Text="提示：首次运行时 Windows 可能提示 SmartScreen，这是因为程序没有代码签名，可右键 exe → 属性 → 解除锁定，或选择“仍要运行”。" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- 底栏 -->
+            <Border Grid.Row="2"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,1,0,0">
+                <Grid Margin="18,0">
+                    <TextBlock x:Name="FooterStatusText"
+                               VerticalAlignment="Center"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="VersionText"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Opacity="0.8"
+                               Text="v1.2.0" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
+

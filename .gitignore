@@ -1,0 +1,9 @@
+bin/
+obj/
+dist/
+.bundle/
+*.user
+.vs/
+build/
+build-tools/
+*.zip
