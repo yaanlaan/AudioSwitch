@@ -17,8 +17,10 @@ public partial class App : Application
     private SingleInstance? _singleInstance;
     private TrayIcon? _tray;
     private GlobalHotkey? _hotkey;
+    private GlobalHotkey? _volumeHotkey;
     private ThemeService? _theme;
     private SwitcherPopup? _popup;
+    private VolumePopup? _volumePopup;
     private SettingsWindow? _settingsWindow;
     private UpdateInfo? _latestUpdate;
     private string? _updateError;
@@ -38,6 +40,10 @@ public partial class App : Application
     internal bool IsHotkeyRegistered => Settings.HotkeyEnabled && _hotkey?.IsRegistered == true;
 
     internal string? HotkeyError => _hotkey?.LastError;
+
+    internal bool IsVolumeHotkeyRegistered => Settings.VolumeHotkeyEnabled && _volumeHotkey?.IsRegistered == true;
+
+    internal string? VolumeHotkeyError => _volumeHotkey?.LastError;
 
     /// <summary>最近一次检查到的新版本；没有新版本时为 null。</summary>
     internal UpdateInfo? LatestUpdate => _latestUpdate;
@@ -83,6 +89,12 @@ public partial class App : Application
             _hotkey = new GlobalHotkey();
             bool hotkeyOk = ApplyHotkey(out string renderHotkeyMessage);
             Console.Out.WriteLine(hotkeyOk ? $"HOTKEY|OK|{Settings.Hotkey}" : $"HOTKEY|FAIL|{renderHotkeyMessage}");
+
+            _volumeHotkey = new GlobalHotkey(0xA572);
+            bool volumeHotkeyOk = ApplyVolumeHotkey(out string renderVolumeHotkeyMessage);
+            Console.Out.WriteLine(volumeHotkeyOk
+                ? $"VOLUME|OK|{Settings.VolumeHotkey}"
+                : $"VOLUME|FAIL|{renderVolumeHotkeyMessage}");
         }
 
 
@@ -117,6 +129,13 @@ public partial class App : Application
             Log.Warn($"全局热键不可用：{hotkeyMessage}");
         }
 
+        _volumeHotkey = new GlobalHotkey(0xA572);
+        _volumeHotkey.Pressed += ToggleVolumePopup;
+        if (!ApplyVolumeHotkey(out string volumeHotkeyMessage))
+        {
+            Log.Warn($"音量快捷键不可用：{volumeHotkeyMessage}");
+        }
+
         if (Settings.AutoCheckUpdates)
         {
             _ = CheckForUpdatesAsync(notify: true);
@@ -143,6 +162,10 @@ public partial class App : Application
             {
                 OpenSettings();
             }
+            else if (message.Equals("volume", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowVolumePopup();
+            }
         }));
     }
 
@@ -164,6 +187,8 @@ public partial class App : Application
             _popup.Activate();
             return;
         }
+
+        CloseVolumePopup();
 
         try
         {
@@ -190,6 +215,55 @@ public partial class App : Application
     {
         SwitcherPopup? popup = _popup;
         _popup = null;
+        popup?.Close();
+    }
+
+    internal void ToggleVolumePopup()
+    {
+        if (_volumePopup is not null)
+        {
+            CloseVolumePopup();
+            return;
+        }
+
+        ShowVolumePopup();
+    }
+
+    internal void ShowVolumePopup()
+    {
+        if (_volumePopup is not null)
+        {
+            _volumePopup.Activate();
+            return;
+        }
+
+        CloseSwitcher();
+
+        try
+        {
+            var popup = new VolumePopup(this);
+            _volumePopup = popup;
+            popup.Closed += (_, _) =>
+            {
+                if (ReferenceEquals(_volumePopup, popup))
+                {
+                    _volumePopup = null;
+                }
+            };
+            popup.Show();
+            popup.Activate();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("打开音量弹窗失败", ex);
+            _volumePopup = null;
+        }
+    }
+
+    private void CloseVolumePopup()
+    {
+        VolumePopup? popup = _volumePopup;
+        _volumePopup = null;
         popup?.Close();
     }
 
@@ -247,6 +321,31 @@ public partial class App : Application
         }
 
         message = _hotkey.LastError ?? "注册失败";
+        return false;
+    }
+
+    internal bool ApplyVolumeHotkey(out string message)
+    {
+        if (_volumeHotkey is null)
+        {
+            message = "音量快捷键尚未初始化";
+            return false;
+        }
+
+        if (!Settings.VolumeHotkeyEnabled)
+        {
+            _volumeHotkey.Unregister();
+            message = "音量快捷键已关闭";
+            return true;
+        }
+
+        if (_volumeHotkey.TryRegister(Settings.VolumeHotkey))
+        {
+            message = "已生效";
+            return true;
+        }
+
+        message = _volumeHotkey.LastError ?? "注册失败";
         return false;
     }
 
@@ -334,9 +433,11 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _popup = null;
+        _volumePopup = null;
         _settingsWindow = null;
         _theme?.Shutdown();
         _hotkey?.Dispose();
+        _volumeHotkey?.Dispose();
         _tray?.Dispose();
         _audio?.Dispose();
         _singleInstance?.Dispose();

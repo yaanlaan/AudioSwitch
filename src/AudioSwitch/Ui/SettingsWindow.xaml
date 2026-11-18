@@ -149,6 +149,20 @@
                             <TextBlock VerticalAlignment="Center" Text="快捷键" />
                         </StackPanel>
                     </RadioButton>
+                    <RadioButton x:Name="NavVolume"
+                                 Style="{StaticResource NavItem}"
+                                 GroupName="SettingsPage"
+                                 Tag="volume"
+                                 Checked="NavItem_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,9,0"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="13"
+                                       Text="&#xE767;" />
+                            <TextBlock VerticalAlignment="Center" Text="音量" />
+                        </StackPanel>
+                    </RadioButton>
                     <RadioButton x:Name="NavAbout"
                                  Style="{StaticResource NavItem}"
                                  GroupName="SettingsPage"
@@ -738,6 +752,105 @@
                                     <TextBlock x:Name="HotkeyHintText"
                                                Style="{StaticResource SettingHint}"
                                                Text="单击上方区域后直接按下组合键即可修改；支持字母、数字、F1–F24；字母数字需搭配 Ctrl、Alt、Shift 或 Win。" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========== 音量 ========== -->
+                        <StackPanel x:Name="PageVolume" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="音量控制" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Border Style="{StaticResource SettingRow}">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="启用音量快捷键" />
+                                                <TextBlock Margin="0,3,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="按一次打开音量弹窗，再按一次关闭" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="VolumeHotkeyEnabledToggle"
+                                                      HorizontalAlignment="Right"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource ToggleSwitch}"
+                                                      Click="VolumeHotkeyEnabledToggle_Click" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Border x:Name="VolumeHotkeyRecorder"
+                                            Margin="0,6,0,0"
+                                            Padding="14,12"
+                                            Background="{DynamicResource SurfaceAltBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Cursor="Hand"
+                                            Focusable="True"
+                                            PreviewKeyDown="VolumeHotkeyRecorder_PreviewKeyDown"
+                                            MouseLeftButtonUp="VolumeHotkeyRecorder_MouseLeftButtonUp"
+                                            LostKeyboardFocus="VolumeHotkeyRecorder_LostKeyboardFocus">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock x:Name="VolumeHotkeyDisplay"
+                                                           FontSize="17"
+                                                           FontWeight="SemiBold"
+                                                           Text="Ctrl+Alt+V" />
+                                                <TextBlock x:Name="VolumeHotkeyStatusText"
+                                                           Margin="0,5,0,0"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="已生效" />
+                                            </StackPanel>
+                                            <Button x:Name="ResetVolumeHotkeyButton"
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource GhostButton}"
+                                                    Click="ResetVolumeHotkey_Click"
+                                                    Content="恢复默认" />
+                                        </Grid>
+                                    </Border>
+
+                                    <TextBlock Style="{StaticResource SettingHint}"
+                                               Text="单击上方区域后直接按下组合键即可修改；字母数字需搭配 Ctrl、Alt、Shift 或 Win，也可单独使用 F1–F24。" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource SectionLabel}" Text="快速操作" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <TextBlock FontSize="11.5"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               Text="音量弹窗可以调节输出设备的总音量，也可以分别调节每个正在发声的应用；静音按钮在滑杆左侧。" />
+                                    <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                        <Button Style="{StaticResource AccentButton}" Click="PreviewVolume_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Margin="0,0,7,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="{StaticResource IconFont}"
+                                                           FontSize="12"
+                                                           Text="&#xE767;" />
+                                                <TextBlock VerticalAlignment="Center" Text="打开音量弹窗" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Margin="8,0,0,0"
+                                                Style="{StaticResource GhostButton}"
+                                                Click="OpenSoundSettings_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Margin="0,0,7,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="{StaticResource IconFont}"
+                                                           FontSize="12"
+                                                           Text="&#xE713;" />
+                                                <TextBlock VerticalAlignment="Center" Text="系统声音设置" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

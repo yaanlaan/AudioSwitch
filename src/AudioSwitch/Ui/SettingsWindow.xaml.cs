@@ -19,9 +19,19 @@ public partial class SettingsWindow : Window
     private readonly App _app;
     private bool _initializing = true;
     private bool _suppressNavigation;
-    private bool _recordingHotkey;
+    private RecorderTarget _recordingTarget;
+    private Border? _activeRecorder;
+    private TextBlock? _activeRecorderDisplay;
+    private TextBlock? _activeRecorderStatus;
     private bool _checkedUpdates;
     private DispatcherTimer? _saveDebounce;
+
+    private enum RecorderTarget
+    {
+        None,
+        Switcher,
+        Volume,
+    }
 
     public SettingsWindow(App app)
     {
@@ -77,6 +87,9 @@ public partial class SettingsWindow : Window
                 case "hotkey":
                     NavHotkey.IsChecked = true;
                     break;
+                case "volume":
+                    NavVolume.IsChecked = true;
+                    break;
                 case "about":
                     NavAbout.IsChecked = true;
                     break;
@@ -90,6 +103,7 @@ public partial class SettingsWindow : Window
             PageAppearance.Visibility = tag == "appearance" ? Visibility.Visible : Visibility.Collapsed;
             PagePopup.Visibility = tag == "popup" ? Visibility.Visible : Visibility.Collapsed;
             PageHotkey.Visibility = tag == "hotkey" ? Visibility.Visible : Visibility.Collapsed;
+            PageVolume.Visibility = tag == "volume" ? Visibility.Visible : Visibility.Collapsed;
             PageAbout.Visibility = tag == "about" ? Visibility.Visible : Visibility.Collapsed;
         }
         finally
@@ -128,6 +142,7 @@ public partial class SettingsWindow : Window
         UpdateBackgroundControls();
         UpdatePopupControls();
         UpdateHotkeyDisplay();
+        UpdateVolumeHotkeyDisplay();
         SettingsPathText.Text = SettingsStore.FilePath;
 
         AutoCheckUpdatesToggle.IsChecked = settings.AutoCheckUpdates;
@@ -243,6 +258,30 @@ public partial class SettingsWindow : Window
         else
         {
             SetHotkeyStatus(_app.HotkeyError ?? "热键未生效", isError: true);
+        }
+    }
+
+    private void UpdateVolumeHotkeyDisplay()
+    {
+        VolumeHotkeyDisplay.Text = _app.Settings.VolumeHotkey;
+        VolumeHotkeyEnabledToggle.IsChecked = _app.Settings.VolumeHotkeyEnabled;
+
+        if (!_app.Settings.VolumeHotkeyEnabled)
+        {
+            SetRecorderStatus(VolumeHotkeyStatusText, "已关闭，托盘与快速操作仍可打开", isError: false);
+            return;
+        }
+
+        if (_app.IsVolumeHotkeyRegistered)
+        {
+            SetRecorderStatus(
+                VolumeHotkeyStatusText,
+                $"已生效：{_app.Settings.VolumeHotkey}",
+                isError: false);
+        }
+        else
+        {
+            SetRecorderStatus(VolumeHotkeyStatusText, _app.VolumeHotkeyError ?? "音量快捷键未生效", isError: true);
         }
     }
 
@@ -599,101 +638,198 @@ public partial class SettingsWindow : Window
             isError: false);
     }
 
-    private void HotkeyRecorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private void VolumeHotkeyEnabledToggle_Click(object sender, RoutedEventArgs e)
     {
-        if (_app.Settings.HotkeyEnabled == false)
+        if (_initializing)
         {
             return;
         }
 
-        BeginRecording();
+        _app.Settings.VolumeHotkeyEnabled = VolumeHotkeyEnabledToggle.IsChecked == true;
+        _app.SaveSettings();
+        _app.ApplyVolumeHotkey(out _);
+        UpdateVolumeHotkeyDisplay();
+        SetFooterStatus(
+            _app.Settings.VolumeHotkeyEnabled ? "已启用音量快捷键" : "已关闭音量快捷键",
+            isError: false);
+    }
+
+    private void HotkeyRecorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        BeginRecording(RecorderTarget.Switcher, HotkeyRecorder, HotkeyDisplay, HotkeyStatusText);
         e.Handled = true;
     }
 
-    private void BeginRecording()
+    private void VolumeHotkeyRecorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        _recordingHotkey = true;
-        HotkeyDisplay.Text = "请按下组合键…";
-        SetHotkeyStatus("按 Esc 取消", isError: false);
-        HotkeyRecorder.BorderBrush = (Brush)FindResource("AccentBrush");
-        HotkeyRecorder.Focus();
-        Keyboard.Focus(HotkeyRecorder);
+        BeginRecording(RecorderTarget.Volume, VolumeHotkeyRecorder, VolumeHotkeyDisplay, VolumeHotkeyStatusText);
+        e.Handled = true;
     }
 
-    private void EndRecording()
+    private void BeginRecording(RecorderTarget target, Border recorder, TextBlock display, TextBlock status)
     {
-        _recordingHotkey = false;
-        HotkeyRecorder.ClearValue(BorderBrushProperty);
+        if (target == RecorderTarget.Switcher && !_app.Settings.HotkeyEnabled)
+        {
+            return;
+        }
+
+        if (target == RecorderTarget.Volume && !_app.Settings.VolumeHotkeyEnabled)
+        {
+            return;
+        }
+
+        _recordingTarget = target;
+        _activeRecorder = recorder;
+        _activeRecorderDisplay = display;
+        _activeRecorderStatus = status;
+
+        display.Text = "请按下组合键…";
+        SetRecorderStatus(status, "按 Esc 取消", isError: false);
+        recorder.BorderBrush = (Brush)FindResource("AccentBrush");
+        recorder.Focus();
+        Keyboard.Focus(recorder);
+    }
+
+    private void EndRecording(bool cancelled)
+    {
+        Border? recorder = _activeRecorder;
+        _recordingTarget = RecorderTarget.None;
+        _activeRecorder = null;
+        _activeRecorderDisplay = null;
+        _activeRecorderStatus = null;
+
+        recorder?.ClearValue(BorderBrushProperty);
         UpdateHotkeyDisplay();
+        UpdateVolumeHotkeyDisplay();
+
+        if (cancelled)
+        {
+            SetFooterStatus("已取消热键录制", isError: false);
+        }
     }
 
-    private void HotkeyRecorder_PreviewKeyDown(object sender, KeyEventArgs e)
+    private void HotkeyRecorder_PreviewKeyDown(object sender, KeyEventArgs e) => HandleRecorderKey(e);
+
+    private void VolumeHotkeyRecorder_PreviewKeyDown(object sender, KeyEventArgs e) => HandleRecorderKey(e);
+
+    private void HandleRecorderKey(KeyEventArgs e)
     {
-        if (!_recordingHotkey)
+        if (_recordingTarget == RecorderTarget.None)
         {
             return;
         }
 
         e.Handled = true;
         Key key = e.Key == Key.System ? e.SystemKey : e.Key;
+        Border? recorder = _activeRecorder;
+        TextBlock? display = _activeRecorderDisplay;
+        TextBlock? status = _activeRecorderStatus;
 
         if (key == Key.Escape)
         {
-            EndRecording();
-            SetFooterStatus("已取消热键录制", isError: false);
+            EndRecording(cancelled: true);
             return;
         }
 
         if (!HotkeyParser.TryFromKey(key, Keyboard.Modifiers, out string text, out string error))
         {
-            setRecordingError(error);
+            if (display is not null)
+            {
+                display.Text = "请按下组合键…";
+            }
+
+            if (status is not null)
+            {
+                SetRecorderStatus(status, error, isError: true);
+            }
+
+            recorder?.Focus();
             return;
         }
 
-        string previous = _app.Settings.Hotkey;
-        _app.Settings.Hotkey = text;
-        _app.SaveSettings();
-        bool ok = _app.ApplyHotkey(out string message);
-        if (!ok)
+        bool volume = _recordingTarget == RecorderTarget.Volume;
+        string previous = volume ? _app.Settings.VolumeHotkey : _app.Settings.Hotkey;
+        if (volume)
         {
-            // 注册失败（常见原因：已被其他程序占用）：回滚到原热键并重新注册。
-            _app.Settings.Hotkey = previous;
-            _app.SaveSettings();
-            _app.ApplyHotkey(out _);
-        }
-
-        _recordingHotkey = false;
-        HotkeyRecorder.ClearValue(BorderBrushProperty);
-        UpdateHotkeyDisplay();
-
-        if (ok)
-        {
-            HotkeyDisplay.Text = text;
-            SetHotkeyStatus($"已生效：{text}", isError: false);
-            SetFooterStatus($"全局热键已设为 {text}", isError: false);
+            _app.Settings.VolumeHotkey = text;
         }
         else
         {
-            SetHotkeyStatus($"无法注册 {text}：{message}", isError: true);
-            SetFooterStatus($"热键被占用，已保留原热键 {previous}", isError: true);
+            _app.Settings.Hotkey = text;
         }
 
-        void setRecordingError(string description)
+        _app.SaveSettings();
+        string message;
+        bool ok = volume
+            ? _app.ApplyVolumeHotkey(out message)
+            : _app.ApplyHotkey(out message);
+
+        if (!ok)
         {
-            HotkeyDisplay.Text = "请按下组合键…";
-            SetHotkeyStatus(description, isError: true);
-            HotkeyRecorder.Focus();
+            // 注册失败（常见原因：已被其他程序占用）：回滚到原热键并重新注册。
+            if (volume)
+            {
+                _app.Settings.VolumeHotkey = previous;
+                _app.SaveSettings();
+                _app.ApplyVolumeHotkey(out _);
+            }
+            else
+            {
+                _app.Settings.Hotkey = previous;
+                _app.SaveSettings();
+                _app.ApplyHotkey(out _);
+            }
+        }
+
+        EndRecording(cancelled: false);
+
+        if (ok)
+        {
+            if (display is not null)
+            {
+                display.Text = text;
+            }
+
+            if (status is not null)
+            {
+                SetRecorderStatus(status, $"已生效：{text}", isError: false);
+            }
+
+            SetFooterStatus(
+                volume ? $"音量快捷键已设为 {text}" : $"全局热键已设为 {text}",
+                isError: false);
+        }
+        else
+        {
+            if (status is not null)
+            {
+                SetRecorderStatus(status, $"无法注册 {text}：{message}", isError: true);
+            }
+
+            SetFooterStatus(
+                volume ? $"音量快捷键被占用，已保留 {previous}" : $"热键被占用，已保留原热键 {previous}",
+                isError: true);
         }
     }
 
     private void HotkeyRecorder_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
-        if (!_recordingHotkey)
+        if (_recordingTarget != RecorderTarget.Switcher)
         {
             return;
         }
 
-        EndRecording();
+        EndRecording(cancelled: true);
+    }
+
+    private void VolumeHotkeyRecorder_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (_recordingTarget != RecorderTarget.Volume)
+        {
+            return;
+        }
+
+        EndRecording(cancelled: true);
     }
 
     private void ResetHotkey_Click(object sender, RoutedEventArgs e)
@@ -707,6 +843,24 @@ public partial class SettingsWindow : Window
         SetHotkeyStatus(ok ? $"已生效：{AppSettings.DefaultHotkey}" : message, isError: !ok);
         SetFooterStatus(ok ? "已恢复默认热键" : "恢复默认热键失败", isError: !ok);
     }
+
+    private void ResetVolumeHotkey_Click(object sender, RoutedEventArgs e)
+    {
+        _app.Settings.VolumeHotkey = AppSettings.DefaultVolumeHotkey;
+        _app.Settings.VolumeHotkeyEnabled = true;
+        _app.SaveSettings();
+        bool ok = _app.ApplyVolumeHotkey(out string message);
+        VolumeHotkeyDisplay.Text = AppSettings.DefaultVolumeHotkey;
+        VolumeHotkeyEnabledToggle.IsChecked = true;
+        SetRecorderStatus(
+            VolumeHotkeyStatusText,
+            ok ? $"已生效：{AppSettings.DefaultVolumeHotkey}" : message,
+            isError: !ok);
+        SetFooterStatus(ok ? "已恢复默认音量快捷键" : "恢复默认音量快捷键失败", isError: !ok);
+    }
+
+    private void PreviewVolume_Click(object sender, RoutedEventArgs e) => _app.ShowVolumePopup();
+
 
     private void OpenSwitcher_Click(object sender, RoutedEventArgs e) => _app.ShowSwitcher();
 
@@ -913,8 +1067,13 @@ public partial class SettingsWindow : Window
 
     private void SetHotkeyStatus(string text, bool isError)
     {
-        HotkeyStatusText.Text = text;
-        HotkeyStatusText.Foreground = isError
+        SetRecorderStatus(HotkeyStatusText, text, isError);
+    }
+
+    private void SetRecorderStatus(TextBlock target, string text, bool isError)
+    {
+        target.Text = text;
+        target.Foreground = isError
             ? (Brush)FindResource("DangerBrush")
             : (Brush)FindResource("TextSecondaryBrush");
     }

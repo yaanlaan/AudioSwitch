@@ -62,6 +62,13 @@ internal static class DevRenderer
                 SavePng(RenderColorDialog(out Size size), size, path);
                 Console.Out.WriteLine($"RENDER|color|{path}|{size.Width}x{size.Height}");
             }
+
+            if (target is "all" or "volume")
+            {
+                string path = Path.Combine(outputDir, "volume.png");
+                SavePng(RenderVolumePopup(app, out Size size), size, path);
+                Console.Out.WriteLine($"RENDER|volume|{path}|{size.Width}x{size.Height}");
+            }
         }
         catch (Exception ex)
         {
@@ -145,6 +152,10 @@ internal static class DevRenderer
                     string popupPath = Path.Combine(outputDir, $"popup-{themeName}-{variant}.png");
                     SavePng(RenderPopup(app, "cards", out Size popupSize), popupSize, popupPath);
                     Console.Out.WriteLine($"RENDER|popup-{themeName}-{variant}|{popupPath}|{popupSize.Width}x{popupSize.Height}");
+
+                    string volumePath = Path.Combine(outputDir, $"volume-{themeName}-{variant}.png");
+                    SavePng(RenderVolumePopup(app, out Size volumeSize), volumeSize, volumePath);
+                    Console.Out.WriteLine($"RENDER|volume-{themeName}-{variant}|{volumePath}|{volumeSize.Width}x{volumeSize.Height}");
                 }
             }
 
@@ -156,7 +167,7 @@ internal static class DevRenderer
             settings.BackgroundImage = null;
             theme.ApplyBackgroundNow();
 
-            foreach (string page in new[] { "appearance", "popup", "hotkey", "about" })
+            foreach (string page in new[] { "appearance", "popup", "hotkey", "volume", "about" })
             {
                 string path = Path.Combine(outputDir, $"settings-{page}-dark-solid.png");
                 SavePng(RenderSettings(app, page, out Size pageSize), pageSize, path);
@@ -255,6 +266,38 @@ internal static class DevRenderer
         {
             app.Settings.PopupStyle = previousStyle;
         }
+    }
+
+    private static FrameworkElement RenderVolumePopup(App app, out Size size)
+    {
+        var popup = new VolumePopup(app);
+        popup.PrepareForRender();
+
+        if (popup.Content is not FrameworkElement content)
+        {
+            throw new InvalidOperationException("音量弹窗没有内容");
+        }
+
+        popup.Content = null;
+
+        double width = double.IsNaN(popup.Width) ? 480 : popup.Width;
+        var available = new Size(width, 2000);
+        content.Measure(available);
+        Size desired = content.DesiredSize;
+        size = new Size(
+            Math.Ceiling(Math.Max(desired.Width, width)),
+            Math.Ceiling(Math.Max(desired.Height, 1)));
+
+        var host = new Border
+        {
+            Background = new SolidColorBrush(DeskColor),
+            Child = content,
+            Width = size.Width,
+            Height = size.Height,
+        };
+
+        Layout(host, size);
+        return host;
     }
 
     private static FrameworkElement RenderColorDialog(out Size size)

@@ -8,9 +8,13 @@ namespace AudioSwitch.Services;
 public sealed class AppSettings
 {
     public const string DefaultHotkey = "Ctrl+Alt+A";
+    public const string DefaultVolumeHotkey = "Ctrl+Alt+V";
     public const string DefaultAccent = "#5B9DFF";
 
     public string Hotkey { get; set; } = DefaultHotkey;
+
+    /// <summary>音量弹窗的全局快捷键。</summary>
+    public string VolumeHotkey { get; set; } = DefaultVolumeHotkey;
 
     public bool StartWithWindows { get; set; }
 
@@ -63,6 +67,9 @@ public sealed class AppSettings
     /// <summary>是否启用全局热键。</summary>
     public bool HotkeyEnabled { get; set; } = true;
 
+    /// <summary>是否启用音量弹窗热键。</summary>
+    public bool VolumeHotkeyEnabled { get; set; } = true;
+
     /// <summary>启动时是否在后台检查 GitHub Releases 更新。</summary>
     public bool AutoCheckUpdates { get; set; } = true;
 
@@ -79,6 +86,11 @@ public sealed class AppSettings
         if (string.IsNullOrWhiteSpace(Hotkey) || !Ui.HotkeyParser.TryParse(Hotkey, out _, out _))
         {
             Hotkey = DefaultHotkey;
+        }
+
+        if (string.IsNullOrWhiteSpace(VolumeHotkey) || !Ui.HotkeyParser.TryParse(VolumeHotkey, out _, out _))
+        {
+            VolumeHotkey = DefaultVolumeHotkey;
         }
 
         ThemeMode = NormalizeChoice(ThemeMode, "light", "dark") ?? "system";

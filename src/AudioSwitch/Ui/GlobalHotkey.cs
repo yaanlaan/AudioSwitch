@@ -178,14 +178,16 @@ internal static class HotkeyParser
 /// <summary>隐藏消息窗口 + RegisterHotKey，避免依赖主窗口生命周期。</summary>
 public sealed class GlobalHotkey : IDisposable
 {
-    private const int HotkeyId = 0xA571;
+    private const int DefaultHotkeyId = 0xA571;
 
     private readonly HwndSource _source;
+    private readonly int _hotkeyId;
     private bool _registered;
     private bool _disposed;
 
-    public GlobalHotkey()
+    public GlobalHotkey(int hotkeyId = DefaultHotkeyId)
     {
+        _hotkeyId = hotkeyId;
         var parameters = new HwndSourceParameters("AudioSwitchHiddenWindow")
         {
             Width = 0,
@@ -229,7 +231,7 @@ public sealed class GlobalHotkey : IDisposable
 
         if (!NativeMethods.RegisterHotKey(
                 _source.Handle,
-                HotkeyId,
+                _hotkeyId,
                 modifiers | NativeMethods.MOD_NOREPEAT,
                 virtualKey))
         {
@@ -250,13 +252,13 @@ public sealed class GlobalHotkey : IDisposable
             return;
         }
 
-        NativeMethods.UnregisterHotKey(_source.Handle, HotkeyId);
+        NativeMethods.UnregisterHotKey(_source.Handle, _hotkeyId);
         _registered = false;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (message == NativeMethods.WM_HOTKEY && wParam.ToInt32() == HotkeyId)
+        if (message == NativeMethods.WM_HOTKEY && wParam.ToInt32() == _hotkeyId)
         {
             handled = true;
             try

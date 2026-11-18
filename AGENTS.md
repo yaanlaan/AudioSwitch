@@ -28,6 +28,8 @@ $exe = "src\AudioSwitch\bin\Release\net9.0-windows\AudioSwitch.exe"
 & $exe --hotkey-test "Ctrl+Shift+F9"
 & $exe --theme-info             # 系统主题、强调色、壁纸取色、DWM 磨砂可用性
 & $exe --tray-test              # 托盘图标能否注册（无交互桌面会失败，属预期）
+& $exe --volume-info            # 总音量 + 各应用音频会话
+& $exe --volume-test            # 总音量/应用音量设置→校验→还原
 & $exe --check-update           # 检查 GitHub Releases（可加版本号参数做比较测试）
 & $exe --download-update D:\Downloads
 
@@ -42,11 +44,11 @@ $exe = "src\AudioSwitch\bin\Release\net9.0-windows\AudioSwitch.exe"
 
 ```text
 src/AudioSwitch/
-  Interop/       Core Audio、IPolicyConfig、DWM/SWC、Win32 互操作（含 TrayNative）
-  Audio/         设备枚举、默认设备读写、角色处理
+  Interop/       Core Audio、IPolicyConfig、DWM/SWC、Win32 互操作（含 TrayNative、AudioVolume）
+  Audio/         设备枚举、默认设备读写、角色处理、音量与会话（AudioVolumeService）
   Services/      SettingsStore、Log、Autostart、SingleInstance、Cli、UpdateService
   Ui/            ThemeService、Palette、Backgrounds、TrayIcon、GlobalHotkey、
-                 SettingsWindow、SwitcherPopup、ColorPickerDialog、DeviceItem、DevRenderer
+                 SettingsWindow、SwitcherPopup、VolumePopup、ColorPickerDialog、DeviceItem、DevRenderer
   Assets/        app.ico / app.png（由 tools/make_icon.py 生成）
 installer/       NSIS 安装脚本（默认完整版，/DLITE 为精简版）
 scripts/         publish.ps1（单文件）、build-installer.ps1（完整版/精简版安装包+便携版）、install-latest.ps1（一键下载校验并提权安装）
@@ -61,6 +63,8 @@ docs/appearance/ 由 --render-all 生成的界面截图
 - **主题**：所有颜色/画刷只定义在 `Ui/Palette.xaml`，`ThemeService` 在运行时替换资源（明暗、强调色、卡片透明度、背景图）。XAML 一律使用 `{DynamicResource XxxBrush}`。
 - **窗口材质**：设置窗与切换弹窗都有 `TintLayer / BackgroundImageLayer / ScrimLayer` 三层背景；新窗口需复用该结构并调用 `ThemeService.ApplyWindowEffects(window)`。
 - **设备切换**：只通过 `AudioDeviceService.SetDefault(id, includeCommunications)` / `SetRoleDefault` 修改三个角色；UI 层不要直接 P/Invoke 音频接口。
+- **音量**：总音量走 `IAudioEndpointVolume`，应用音量走 `IAudioSessionManager2` + `ISimpleAudioVolume`；会话按 PID 合并（系统声音为 0），`AudioVolumeService.TryGetDefaultDevice` 默认用 `eMultimedia`、失败回退 `eConsole`。`IAudioSessionControl2` 是独立声明而非继承 `IAudioSessionControl`，改 vtable 时必须按完整槽位顺序。
+- **双热键**：切换器热键 id `0xA571`、音量热键 id `0xA572`，`GlobalHotkey` 构造参数区分；两个弹窗互斥，打开一个会关闭另一个。
 - **托盘**：`Ui/TrayIcon` 不依赖 WinForms，用 `Interop/TrayNative` 的 `Shell_NotifyIcon` + 屏幕外隐藏窗口（`"AudioSwitchTrayWindow"`）接收 `WM_APP+1` 回调；`TaskbarCreated` 后重新注册。不要为省事改回 WinForms（会多引入约 24 MB 运行时）。
 - **取色器**：`Ui/ColorPickerDialog` 是自绘 WPF 窗口，颜色校验统一走 `AppSettings.TryParseColor`，不要另写解析。
 - **精简版**：同一份源码，`build-installer.ps1` 额外发布 self-contained=false 的 `build\app-lite`；NSIS 以 `/DLITE` 编译并检查 `%ProgramFiles%\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`（以及用户级目录）。
@@ -91,12 +95,14 @@ docs/appearance/ 由 --render-all 生成的界面截图
 9. **更新检查依赖网络与资产命名**：GitHub API 偶发 SSL 握手失败，`UpdateService` 已用 `SendWithRetryAsync` 重试 3 次；不要改成强制 HTTP/1.1（release-assets 需要 HTTP/2，会稳定失败）。Release 资产名必须匹配 `AudioSwitch-Setup-*.exe`，否则查得到版本却下载不到。
 10. **托盘在非交互桌面不可用**：`--tray-test` 在服务会话、无可见桌面的沙箱/远程环境会返回 `Win32 错误 5`（拒绝访问），这是环境限制而非代码缺陷；真实登录桌面正常。不要为此改回 WinForms 或在启动时弹错误框。
 11. **SmartScreen 不能靠代码绕过**：未签名 exe 带 Mark-of-the-Web 时，Windows 必定显示「未知发布者」。不要用改扩展名、重新打包成 ISO、自签名证书或自动加 Defender 排除项来规避。唯一正规方式是受信任 CA 的代码签名（`build-installer.ps1` 的 `-SigningThumbprint` / `-PfxPath`），面向普通用户可引导使用 `scripts/install-latest.ps1`（PowerShell 下载不带 MOTW，只剩 UAC）。说明见 `docs/SIGNING.md`。
+12. **音量接口的 HRESULT 要用 `>= 0`**：`IAudioEndpointVolume::SetMute`、`SetMasterVolumeLevelScalar`、`ISimpleAudioVolume::SetMasterVolume` 在值未变化时返回 `S_FALSE (1)`，判断成功不能写 `== 0`，否则设置“取消静音”会被误判为失败。
 
 ## 修改后的验收清单
 
 - [ ] `dotnet build AudioSwitch.sln -c Release` 0 warning 0 error
 - [ ] `--probe` 正常，`--self-test` 通过且设备状态已还原
 - [ ] `--hotkey-test`：合法组合 `OK`（退出码 0），非法组合 `FAIL`（退出码 1）
+- [ ] `--volume-info` 能列出设备与会话，`--volume-test` 输出 `VOLUMETEST|OK` 且音量已还原
 - [ ] 交互桌面下 `--tray-test` 返回 `TRAY|OK`（沙箱里错误 5 属预期）
 - [ ] 改 UI 后运行 `--render-all`，逐张检查 `docs/appearance` 截图
 - [ ] 新增设置项：默认值 + `Normalize` + README 设置表

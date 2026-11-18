@@ -49,9 +49,224 @@ internal static class Cli
             "--check-update" => RunCheckUpdate(args),
             "--download-update" => RunDownloadUpdate(args),
             "--tray-test" => RunTrayTest(),
+            "--volume-info" => RunVolumeInfo(),
+            "--volume-set" => RunVolumeSet(args),
+            "--volume-app" => RunVolumeApp(args),
+            "--volume-test" => RunVolumeTest(),
             _ => null,
         };
     }
+
+    /// <summary>输出总音量与各应用会话音量。</summary>
+    private static int RunVolumeInfo()
+    {
+        try
+        {
+            using var audio = new AudioDeviceService();
+            using var volume = new AudioVolumeService();
+
+            AudioDevice? device = audio.GetOutputDevices().FirstOrDefault(d => d.IsDefaultConsole);
+            Print($"DEVICE|{Sanitize(device?.DisplayName ?? "(无可用输出设备)")}");
+
+            if (volume.TryGetMasterVolume(out float master, out bool muted))
+            {
+                Print($"MASTER|{(int)Math.Round(master * 100)}|{(muted ? 1 : 0)}|{master * 100:0.#}");
+            }
+            else
+            {
+                Print("MASTER|NA|0|0");
+            }
+
+            IReadOnlyList<AppVolumeSession> sessions = volume.GetSessions();
+            foreach (AppVolumeSession session in sessions)
+            {
+                Print($"SESSION|{session.ProcessId}|{Sanitize(session.Name)}|{session.Subtitle}|"
+                    + $"{(int)Math.Round(session.Volume * 100)}|{(session.Muted ? 1 : 0)}|"
+                    + $"{(session.IsActive ? 1 : 0)}|{session.SessionCount}|{(session.IsSystem ? 1 : 0)}");
+            }
+
+            Print($"END|{sessions.Count}");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Print($"FAIL|{ex.GetType().Name}: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>--volume-set &lt;0-100&gt; [--mute on|off]</summary>
+    private static int RunVolumeSet(string[] args)
+    {
+        if (args.Length < 2 || !int.TryParse(args[1], out int percent) || percent is < 0 or > 100)
+        {
+            Print("USAGE|--volume-set <0-100> [--mute on|off]");
+            return 2;
+        }
+
+        bool? mute = null;
+        for (int i = 2; i < args.Length - 1; i++)
+        {
+            if (!string.Equals(args[i], "--mute", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            mute = args[i + 1].ToLowerInvariant() switch
+            {
+                "on" or "true" or "1" => true,
+                "off" or "false" or "0" => false,
+                _ => null,
+            };
+        }
+
+        try
+        {
+            using var volume = new AudioVolumeService();
+            if (!volume.TryGetMasterVolume(out _, out _))
+            {
+                Print("FAIL|当前没有可用的输出设备");
+                return 1;
+            }
+
+            bool ok = volume.SetMasterVolume(percent / 100f);
+            if (mute.HasValue)
+            {
+                ok &= volume.SetMasterMute(mute.Value);
+            }
+
+            if (volume.TryGetMasterVolume(out float actual, out bool actualMute))
+            {
+                Print($"VOLUME|{(ok ? "OK" : "FAIL")}|{(int)Math.Round(actual * 100)}|{(actualMute ? 1 : 0)}");
+            }
+            else
+            {
+                Print($"VOLUME|{(ok ? "OK" : "FAIL")}|{percent}|{mute.GetValueOrDefault() switch { true => 1, _ => 0 }}");
+            }
+
+            return ok ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            Print($"FAIL|{ex.GetType().Name}: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>--volume-app &lt;PID 或进程名&gt; &lt;0-100&gt;</summary>
+    private static int RunVolumeApp(string[] args)
+    {
+        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[1])
+            || !int.TryParse(args[2], out int percent) || percent is < 0 or > 100)
+        {
+            Print("USAGE|--volume-app <PID 或进程名片段> <0-100>");
+            return 2;
+        }
+
+        string target = args[1].Trim();
+        try
+        {
+            using var volume = new AudioVolumeService();
+            IReadOnlyList<AppVolumeSession> sessions = volume.GetSessions();
+
+            List<AppVolumeSession> matches;
+            if (uint.TryParse(target, out uint pid))
+            {
+                matches = sessions.Where(s => s.ProcessId == pid).ToList();
+            }
+            else
+            {
+                matches = sessions
+                    .Where(s => s.Name.Contains(target, StringComparison.OrdinalIgnoreCase)
+                        || s.Subtitle.Contains(target, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            if (matches.Count == 0)
+            {
+                Print($"FAIL|没有找到匹配“{Sanitize(target)}”的音频会话（共 {sessions.Count} 个）");
+                return 1;
+            }
+
+            int changed = 0;
+            foreach (AppVolumeSession session in matches.GroupBy(s => s.ProcessId).Select(g => g.First()))
+            {
+                if (volume.SetSessionVolume(session.ProcessId, percent / 100f))
+                {
+                    changed++;
+                }
+            }
+
+            Print(changed > 0
+                ? $"APP|OK|{Sanitize(matches[0].Name)}|{percent}|{changed}"
+                : "APP|FAIL|设置应用音量失败");
+            return changed > 0 ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            Print($"FAIL|{ex.GetType().Name}: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>自检：改总音量与一个应用音量并校验，随后恢复原值。</summary>
+    private static int RunVolumeTest()
+    {
+        try
+        {
+            using var volume = new AudioVolumeService();
+            if (!volume.TryGetMasterVolume(out float original, out bool originalMute))
+            {
+                Print("VOLUMETEST|FAIL|没有可用的输出设备");
+                return 1;
+            }
+
+            string appResult = "SKIP";
+            uint appPid = 0;
+            float appOriginal = 0;
+            bool hasApp = false;
+
+            try
+            {
+                volume.SetMasterVolume(0.37f);
+                bool masterOk = volume.TryGetMasterVolume(out float actual, out _)
+                    && Math.Abs(actual - 0.37f) < 0.03f;
+
+                AppVolumeSession? session = volume.GetSessions().FirstOrDefault(s => !s.IsSystem);
+                bool appOk = true;
+                if (session is not null)
+                {
+                    appPid = session.ProcessId;
+                    appOriginal = session.Volume;
+                    hasApp = true;
+                    volume.SetSessionVolume(appPid, 0.4f);
+                    AppVolumeSession? after = volume.GetSessions().FirstOrDefault(s => s.ProcessId == appPid);
+                    appOk = after is not null && Math.Abs(after.Volume - 0.4f) < 0.04f;
+                    appResult = $"{appPid}:{(appOk ? "OK" : "FAIL")}";
+                }
+
+                Print($"VOLUMETEST|{(masterOk && appOk ? "OK" : "FAIL")}|master={(int)Math.Round(actual * 100)}|app={appResult}");
+                return masterOk && appOk ? 0 : 1;
+            }
+            finally
+            {
+                volume.SetMasterVolume(original);
+                volume.SetMasterMute(originalMute);
+                if (hasApp)
+                {
+                    volume.SetSessionVolume(appPid, appOriginal);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Print($"VOLUMETEST|FAIL|{ex.GetType().Name}: {ex.Message}");
+            return 1;
+        }
+    }
+
+    private static string Sanitize(string value) =>
+        value.Replace('|', '/').Replace('\r', ' ').Replace('\n', ' ');
 
     /// <summary>验证 Shell_NotifyIcon 托盘图标能否注册与更新提示。</summary>
     private static int RunTrayTest()

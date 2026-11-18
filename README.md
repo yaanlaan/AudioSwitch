@@ -15,10 +15,10 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 
 | 方式 | 文件 | 说明 |
 | --- | --- | --- |
-| **安装版（推荐）** | [AudioSwitch-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.1.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
-| 精简安装版 | [AudioSwitch-Lite-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.4.1.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
-| 免安装 | [AudioSwitch-Portable-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.1.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
-| 精简免安装 | [AudioSwitch-Lite-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.1.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
+| **安装版（推荐）** | [AudioSwitch-Setup-1.5.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.5.0.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
+| 精简安装版 | [AudioSwitch-Lite-Setup-1.5.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.5.0.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
+| 免安装 | [AudioSwitch-Portable-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.5.0.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
+| 精简免安装 | [AudioSwitch-Lite-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.5.0.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
 | 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 所有产物的 SHA-256 |
 
 所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，从浏览器下载后首次运行，Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
@@ -55,7 +55,8 @@ $s = irm https://raw.githubusercontent.com/yaanlaan/AudioSwitch/main/scripts/ins
 - **磁贴式切换器**：默认按 Alt+Tab 风格把设备排成圆角磁贴，当前设备有强调色边框和「当前」徽标；支持方向键、`Tab` / `Shift+Tab`、数字键 `1`–`9` 选择（首尾循环），`Enter` 切换，`Esc` 关闭。也可以切回紧凑的列表样式。
 - **单击切换**：单击任意设备立即切换系统默认输出设备，切换后可自动关闭弹窗。
 - **全局热键**：默认 `Ctrl+Alt+A`。设置里点一下录制框，**直接按下想要的组合键**即可生效；可随时关闭热键。
-- **分类设置页**：常规 / 外观 / 切换弹窗 / 快捷键 / 关于，功能不再堆在一页。
+- **音量控制**：按 `Ctrl+Alt+V`（可在设置 → 音量里改）打开音量弹窗，滑杆调总音量或单个应用的音量，支持静音；弹窗会列出当前正在发声的应用，并随音量变化实时刷新。
+- **分类设置页**：常规 / 外观 / 切换弹窗 / 音量 / 快捷键 / 关于，功能不再堆在一页。
 - **一体化标题栏**：自绘标题栏与内容共用同一层背景，深色/浅色/背景图模式下都不会出现割裂的色块。
 - **磨砂卡片**：选项卡片使用半透明玻璃材质，可调「卡片不透明度」，让桌面或背景图透出来。
 - **明暗主题**：可选「跟随系统」「浅色」「深色」，跟随系统时随 Windows 明暗自动切换。
@@ -94,7 +95,7 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 
 ## 安装（推荐）
 
-[AudioSwitch-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.1.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
+[AudioSwitch-Setup-1.5.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.5.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
 
 1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。不想出现这一步，可用上文的「一键安装」命令。
 2. 随后会出现 **UAC 管理员确认框**，点「是」。安装程序以管理员权限运行，避免从浏览器/聊天窗口打开时被系统限制成低权限、导致写入失败。
@@ -111,14 +112,14 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 也可以静默安装（适合脚本；仍会请求管理员权限，请在管理员 PowerShell 中执行）：
 
 ```powershell
-AudioSwitch-Setup-1.4.1.exe /S
-AudioSwitch-Setup-1.4.1.exe /S /D=C:\Tools\AudioSwitch
+AudioSwitch-Setup-1.5.0.exe /S
+AudioSwitch-Setup-1.5.0.exe /S /D=C:\Tools\AudioSwitch
 ```
 
 如果系统已经安装了 .NET 9 桌面运行时，也可以用体积只有约 0.3 MB 的精简版安装程序（安装流程、目录与卸载方式完全相同）：
 
 ```powershell
-AudioSwitch-Lite-Setup-1.4.1.exe /S
+AudioSwitch-Lite-Setup-1.5.0.exe /S
 ```
 
 精简版安装程序启动时会检查 `%ProgramFiles%\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`（以及用户级安装目录），找不到运行时则提示下载地址并中止，不会装出一个无法运行的程序。
@@ -129,9 +130,9 @@ AudioSwitch-Lite-Setup-1.4.1.exe /S
 
 ### 便携版
 
-[AudioSwitch-Portable-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.1.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
+[AudioSwitch-Portable-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.5.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
 
-如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.1.zip)（约 0.3 MB）；解压后的目录结构相同。
+如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.5.0.zip)（约 0.3 MB）；解压后的目录结构相同。
 
 解压后如果仍提示 SmartScreen，对该目录执行一次：
 
@@ -193,6 +194,7 @@ Get-ChildItem -Recurse -File | Unblock-File
 | 常规 | 当前输出设备、开机自启、关闭到托盘、通信设备同步、快速操作 |
 | 外观 | 明暗主题、配色来源与色板、窗口材质、卡片不透明度、背景图片、不透明度、模糊 |
 | 切换弹窗 | 磁贴/列表样式、每行数量、弹出位置、显示设备图标、切换后自动关闭、淡入动画、预览 |
+| 音量 | 启用/关闭音量快捷键、录制组合键、恢复默认、打开音量弹窗、系统声音设置 |
 | 快捷键 | 启用/关闭全局热键、录制组合键、恢复默认 |
 | 关于 | 版本、配置文件与日志位置、检查更新、解除文件锁定、打开日志/声音设置、SmartScreen 说明 |
 
@@ -202,6 +204,8 @@ Get-ChildItem -Recurse -File | Unblock-File
 | --- | --- |
 | 全局热键 | 单击热键区域后直接按下组合键即可生效。支持字母、数字、`F1`–`F24` 和空格；字母与数字需搭配 `Ctrl`、`Alt`、`Shift` 或 `Win`，功能键可单独使用。被其他程序占用时会提示并保留原热键 |
 | 启用全局热键 | 关闭后释放热键注册，只用托盘或设置窗口切换 |
+| 音量快捷键 | 默认 `Ctrl+Alt+V`，单击后按下组合键即可修改；与全局热键规则相同 |
+| 启用音量快捷键 | 关闭后释放音量热键，仍可从托盘菜单或设置页面打开音量弹窗 |
 | 主题 | `跟随系统` / `浅色` / `深色` |
 | 配色来源 | `跟随 Windows`（系统主题色）、`固定配色`（内置色板或自定义颜色）、`取图片颜色`（从背景图片或当前壁纸取色） |
 | 窗口材质 | `磨砂玻璃`（Windows 11 DWM Acrylic）或 `纯色` |
@@ -241,6 +245,14 @@ Get-ChildItem -Recurse -File | Unblock-File
 | 磁贴弹窗 · 背景图 | 列表弹窗 |
 | --- | --- |
 | ![](docs/appearance/popup-dark-image.png) | ![](docs/appearance/popup-list-dark-solid.png) |
+
+| 音量弹窗 · 深色 | 音量弹窗 · 浅色背景图 |
+| --- | --- |
+| ![](docs/appearance/volume-dark-solid.png) | ![](docs/appearance/volume-light-image.png) |
+
+| 深色 · 音量设置 |
+| --- |
+| ![](docs/appearance/settings-volume-dark-solid.png) |
 
 | 关于与更新检查 | 自定义强调色（取色器） |
 | --- | --- |
@@ -285,6 +297,20 @@ AudioSwitch.exe --theme-info
 # 验证托盘图标能否注册（退出码 0/1；远程/无交互桌面可能失败）
 AudioSwitch.exe --tray-test
 
+# 音量：查看总音量与各应用会话
+AudioSwitch.exe --volume-info
+
+# 设置总音量（0–100），可同时静音/取消静音
+AudioSwitch.exe --volume-set 35
+AudioSwitch.exe --volume-set 35 --mute on
+
+# 按进程 PID 或名称片段设置单个应用的音量
+AudioSwitch.exe --volume-app firefox 40
+AudioSwitch.exe --volume-app 16240 100
+
+# 音量自检：设置总音量与应用音量、校验后恢复原值
+AudioSwitch.exe --volume-test
+
 # 检查 GitHub 上是否有新版本（输出 CURRENT / LATEST / SETUP / CHECK）
 AudioSwitch.exe --check-update
 AudioSwitch.exe --check-update 1.2.0   # 用指定版本号做比较测试
@@ -316,12 +342,22 @@ SAMPLE|...|accent=#09232B|avg=#09232B|luminance=0.12|fallback=0
 BACKDROP|acrylic|OK|backdrop=acrylic
 ```
 
+`--volume-info` 输出形如：
+
+```text
+DEVICE|耳机
+MASTER|100|0|100
+SESSION|16240|firefox|Mozilla Firefox|100|0|1|1|0
+SESSION|0|系统声音|通知、提示音与系统音效|0|1|0|1|1
+END|2
+```
+
 `--check-update` 输出形如：
 
 ```text
-CURRENT|1.4.1
-LATEST|1.4.1|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.4.1
-SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.4.1/AudioSwitch-Setup-1.4.1.exe
+CURRENT|1.5.0
+LATEST|1.5.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.5.0
+SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.5.0/AudioSwitch-Setup-1.5.0.exe
 CHECK|uptodate
 ```
 
@@ -388,6 +424,7 @@ pwsh -File scripts\publish.ps1
 - 磨砂使用 DWM 的 `DWMWA_SYSTEMBACKDROP_TYPE`（Windows 11 22H2+）或 `SetWindowCompositionAttribute` 的 Acrylic 模糊，失败时逐级回退并写入日志。
 - 设备选择器用 `WrapPanel` + 自定义 `ListBoxItem` 模板渲染磁贴，列数由设置或设备数量决定，窗口尺寸随内容计算。
 - 托盘图标直接用 `Shell_NotifyIcon`（`NOTIFYICONDATAW` + 屏幕外隐藏窗口接收回调），自定义颜色使用自绘的 WPF 取色对话框；v1.4 起项目不再引用 WinForms，发布体积因此减少约 26 MB。
+- 音量通过 Core Audio 的 `IAudioEndpointVolume`（总音量）和 `IAudioSessionManager2` / `ISimpleAudioVolume`（应用会话）读写；会话按 PID 合并，1.2 秒轮询刷新正在发声的应用。
 - 全项目零 NuGet 依赖，COM / Win32 互操作全部手写，热键使用 `RegisterHotKey`。
 
 ## 项目结构
@@ -395,7 +432,7 @@ pwsh -File scripts\publish.ps1
 ```text
 src/AudioSwitch/
   Interop/        Core Audio、IPolicyConfig、DWM、托盘与 Win32 互操作
-  Audio/          设备枚举、默认设备读写
+  Audio/          设备枚举、默认设备读写、音量与应用会话
   Services/       设置、日志、开机自启、单实例、命令行、更新检查
   Ui/             主题服务、调色板、背景图、托盘、热键、弹窗、设置窗口、取色器
   Assets/         应用图标
@@ -408,7 +445,8 @@ docs/appearance/    外观预览图
 
 ## 已知限制
 
-- 只管理系统**默认输出设备**，不处理单个应用的音频路由、音量或麦克风。
+- 只管理系统**默认输出设备**，不处理单个应用的音频路由（某个应用固定输出到哪块声卡）。
+- 音量弹窗按进程合并会话，同一应用的多个音频会话会一起调节；系统声音（PID 0）单独列出。
 - 依赖 Windows 未公开的 `IPolicyConfig` 接口，系统大版本升级后若行为变化需要更新。
 - 设备列表来自 `DEVICE_STATE_ACTIVE` 端点，已禁用的设备不会显示。
 - 磨砂玻璃依赖 DWM；在远程桌面、关闭「透明效果」或旧版 Windows 上会回退为纯色。
@@ -434,6 +472,7 @@ docs/appearance/    外观预览图
 
 ## 更新记录
 
+- **1.5.0** — 新增音量控制：`Ctrl+Alt+V` 打开音量弹窗，可调总音量与单个应用的音量、静音，并实时刷新正在发声的应用；设置页新增「音量」分类与独立的快捷键录制；命令行新增 `--volume-info` / `--volume-set` / `--volume-app` / `--volume-test`。
 - **1.4.1** — 修复精简版覆盖安装到旧完整版目录后启动提示“需要安装 .NET”的问题：安装前自动清理残留的自包含运行库；README 补充对应排查说明。
 - **1.4.0** — 体积与内存优化：移除 WinForms（托盘改纯 Win32、自定义颜色改 WPF 取色器），完整安装包 46.2 → 39.7 MB、安装后 153 → 127 MB、常驻内存约降低三分之一；新增约 0.3 MB 的精简版安装程序/便携包（复用系统 .NET 9 运行时，安装前检查）。
 - **1.3.0** — 切换弹窗支持 `Tab` / `Shift+Tab` 与方向键首尾循环选择；「关于」页新增更新检查，可下载并启动新版本安装包，支持启动时自动检查。
