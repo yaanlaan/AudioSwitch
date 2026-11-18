@@ -14,7 +14,7 @@ BrandingText "AudioSwitch"
 
 !define APP_NAME "AudioSwitch"
 !ifndef APP_VERSION
-  !define APP_VERSION "1.4.0"
+  !define APP_VERSION "1.4.1"
 !endif
 !ifdef LITE
   !define PAYLOAD_DIR "..\build\app-lite"
@@ -248,6 +248,17 @@ Section "AudioSwitch 程序（必需）" SEC_CORE
   File /r "${PAYLOAD_DIR}\*.*"
   File "..\README.md"
 
+  ; 精简版覆盖安装到旧的完整版目录时，残留的 hostfxr.dll 等自包含运行库会让
+  ; 框架依赖版 apphost 把程序目录当成 .NET 根目录，启动时报“需要安装 .NET”。
+  ; 此时先清空产品目录（与卸载行为一致），再写入精简版文件。
+  !ifdef LITE
+    IfFileExists "$INSTDIR\hostfxr.dll" 0 lite_clean_done
+    IfFileExists "$INSTDIR\${APP_EXE}" 0 lite_clean_done
+      StrCpy $R5 1
+      RMDir /r "$INSTDIR"
+    lite_clean_done:
+  !endif
+
   CreateDirectory "$INSTDIR"
   StrCpy $R2 0
   Call CopyPayload
@@ -270,6 +281,11 @@ Section "AudioSwitch 程序（必需）" SEC_CORE
 
   FileOpen $9 "${INSTALL_LOG}" a
   ${If} $9 != ""
+    !ifdef LITE
+      ${If} $R5 == 1
+        !insertmacro LOG_TEXT "removed stale self-contained runtime files from $INSTDIR"
+      ${EndIf}
+    !endif
     !insertmacro LOG_TEXT "payload copied to $INSTDIR"
     FileClose $9
   ${EndIf}

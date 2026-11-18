@@ -15,10 +15,10 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 
 | 方式 | 文件 | 说明 |
 | --- | --- | --- |
-| **安装版（推荐）** | [AudioSwitch-Setup-1.4.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.0.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
-| 精简安装版 | [AudioSwitch-Lite-Setup-1.4.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.4.0.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
-| 免安装 | [AudioSwitch-Portable-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.0.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
-| 精简免安装 | [AudioSwitch-Lite-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.0.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
+| **安装版（推荐）** | [AudioSwitch-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.1.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
+| 精简安装版 | [AudioSwitch-Lite-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.4.1.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
+| 免安装 | [AudioSwitch-Portable-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.1.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
+| 精简免安装 | [AudioSwitch-Lite-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.1.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
 | 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 所有产物的 SHA-256 |
 
 所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，首次运行时 Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
@@ -73,7 +73,7 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 
 ## 安装（推荐）
 
-[AudioSwitch-Setup-1.4.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
+[AudioSwitch-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.1.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
 
 1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。
 2. 随后会出现 **UAC 管理员确认框**，点「是」。安装程序以管理员权限运行，避免从浏览器/聊天窗口打开时被系统限制成低权限、导致写入失败。
@@ -90,14 +90,14 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 也可以静默安装（适合脚本；仍会请求管理员权限，请在管理员 PowerShell 中执行）：
 
 ```powershell
-AudioSwitch-Setup-1.4.0.exe /S
-AudioSwitch-Setup-1.4.0.exe /S /D=C:\Tools\AudioSwitch
+AudioSwitch-Setup-1.4.1.exe /S
+AudioSwitch-Setup-1.4.1.exe /S /D=C:\Tools\AudioSwitch
 ```
 
 如果系统已经安装了 .NET 9 桌面运行时，也可以用体积只有约 0.3 MB 的精简版安装程序（安装流程、目录与卸载方式完全相同）：
 
 ```powershell
-AudioSwitch-Lite-Setup-1.4.0.exe /S
+AudioSwitch-Lite-Setup-1.4.1.exe /S
 ```
 
 精简版安装程序启动时会检查 `%ProgramFiles%\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`（以及用户级安装目录），找不到运行时则提示下载地址并中止，不会装出一个无法运行的程序。
@@ -108,9 +108,9 @@ AudioSwitch-Lite-Setup-1.4.0.exe /S
 
 ### 便携版
 
-[AudioSwitch-Portable-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
+[AudioSwitch-Portable-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.1.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
 
-如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.0.zip)（约 0.3 MB）；解压后的目录结构相同。
+如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.1.zip)（约 0.3 MB）；解压后的目录结构相同。
 
 解压后如果仍提示 SmartScreen，对该目录执行一次：
 
@@ -298,9 +298,9 @@ BACKDROP|acrylic|OK|backdrop=acrylic
 `--check-update` 输出形如：
 
 ```text
-CURRENT|1.4.0
-LATEST|1.4.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.4.0
-SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.4.0/AudioSwitch-Setup-1.4.0.exe
+CURRENT|1.4.1
+LATEST|1.4.1|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.4.1
+SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.4.1/AudioSwitch-Setup-1.4.1.exe
 CHECK|uptodate
 ```
 
@@ -392,12 +392,13 @@ docs/appearance/    外观预览图
 - 设备列表来自 `DEVICE_STATE_ACTIVE` 端点，已禁用的设备不会显示。
 - 磨砂玻璃依赖 DWM；在远程桌面、关闭「透明效果」或旧版 Windows 上会回退为纯色。
 - 背景图片仅用于窗口装饰，不做任何图像处理（缩放/模糊在内存中完成，不回写文件）。
-- 精简版依赖系统安装的 .NET 9 桌面运行时；完整版无此要求。
+- 精简版依赖系统安装的 .NET 9 桌面运行时；完整版无此要求。精简版不要直接覆盖到旧的完整版目录（会残留完整版的运行库）；1.4.1 起安装程序会自动清理，便携包请解压到空目录。
 - 托盘图标依赖资源管理器通知区域：在服务会话、无交互桌面的远程环境里无法注册（`--tray-test` 会返回错误 5），普通登录桌面不受影响。
 - 未做代码签名：安装程序首次运行可能触发 SmartScreen；安装后的程序不带网络标记，通常不会再提示。若系统开启了 Smart App Control，未签名程序仍可能被阻止，只能关闭该功能或使用签名版本。
 
 ## 排查
 
+- **已安装 .NET 9，精简版仍提示缺少 .NET**：通常是精简版被装到了旧的完整版目录里，残留的 `hostfxr.dll` 等文件让程序误判运行时位置。1.4.1 起的精简版安装程序会自动清理旧目录；也可以先卸载旧版，或直接删除 `%LOCALAPPDATA%\Programs\AudioSwitch` 后重装。便携版请解压到空目录。
 - **双击后没有窗口**：多半是旧的单文件自解压版本被安全策略拦截，改装 `AudioSwitch-Setup` 或便携版；细节见上文「关于 Windows 已保护你的电脑与 Defender」。
 - 出现 SmartScreen 提示：安装程序只需点一次「仍要运行」；便携版可对目录执行 `Unblock-File`，或在「关于」页一键解除。
 - 热键无效：多半被其它程序占用（设置窗口会提示并保留旧热键），换一个组合即可；也可用 `--hotkey-test` 单独验证。
@@ -412,6 +413,7 @@ docs/appearance/    外观预览图
 
 ## 更新记录
 
+- **1.4.1** — 修复精简版覆盖安装到旧完整版目录后启动提示“需要安装 .NET”的问题：安装前自动清理残留的自包含运行库；README 补充对应排查说明。
 - **1.4.0** — 体积与内存优化：移除 WinForms（托盘改纯 Win32、自定义颜色改 WPF 取色器），完整安装包 46.2 → 39.7 MB、安装后 153 → 127 MB、常驻内存约降低三分之一；新增约 0.3 MB 的精简版安装程序/便携包（复用系统 .NET 9 运行时，安装前检查）。
 - **1.3.0** — 切换弹窗支持 `Tab` / `Shift+Tab` 与方向键首尾循环选择；「关于」页新增更新检查，可下载并启动新版本安装包，支持启动时自动检查。
 - **1.2.4** — 安装程序声明 `requireAdministrator`，启动即请求 UAC，彻底避免低权限导致的写入失败；安装前做写入测试，失败时给出可操作提示。

@@ -85,7 +85,7 @@ docs/appearance/ 由 --render-all 生成的界面截图
 3. **背景图用绝对路径**：`Backgrounds.Load` 内部会 `GetFullPath`，但调用方仍应传入绝对路径；相对路径曾导致图片不显示。
 4. **测试会改动真实系统状态**：`--self-test`、`--hotkey-test`、安装/卸载测试都会改默认设备、热键或注册表。测试前记录 `--probe` 结果，结束后确认已还原，必要时手动恢复。
 5. **构建前结束进程**，否则 `MSB3027` 文件被占用。
-6. **NSIS 打包**：`installer/installer.nsi` 必须保存为 UTF-8 **带 BOM**；`makensis` 需要可写的 `TEMP/TMP`；改安装逻辑后必须重跑 `scripts/build-installer.ps1` 并做静默安装/卸载验证。
+6. **NSIS 打包**：`installer/installer.nsi` 必须保存为 UTF-8 **带 BOM**；`makensis` 需要可写的 `TEMP/TMP`；改安装逻辑后必须重跑 `scripts/build-installer.ps1` 并做静默安装/卸载验证。精简版覆盖旧完整版目录时，安装程序会先清空 `$INSTDIR`（旧 `hostfxr.dll` 会让框架依赖版误判运行时位置）；修改该段时不要去掉 `AudioSwitch.exe` 存在性保护。
 7. **受限环境下文件写入可能被拒**：应用写 `%APPDATA%`/`%TEMP%` 失败时日志会静默跳过，此时以 CLI 输出为准。
 8. **版本号**：`csproj` 的 `<Version>` 是唯一来源，打包脚本会读取它；发版时同步 README 下载链接与更新记录。
 9. **更新检查依赖网络与资产命名**：GitHub API 偶发 SSL 握手失败，`UpdateService` 已用 `SendWithRetryAsync` 重试 3 次；不要改成强制 HTTP/1.1（release-assets 需要 HTTP/2，会稳定失败）。Release 资产名必须匹配 `AudioSwitch-Setup-*.exe`，否则查得到版本却下载不到。
