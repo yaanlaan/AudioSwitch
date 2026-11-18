@@ -15,10 +15,10 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 
 | 方式 | 文件 | 说明 |
 | --- | --- | --- |
-| **安装版（推荐）** | [AudioSwitch-Setup-1.5.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.5.0.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
-| 精简安装版 | [AudioSwitch-Lite-Setup-1.5.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.5.0.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
-| 免安装 | [AudioSwitch-Portable-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.5.0.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
-| 精简免安装 | [AudioSwitch-Lite-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.5.0.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
+| **安装版（推荐）** | [AudioSwitch-Setup-1.6.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.6.0.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
+| 精简安装版 | [AudioSwitch-Lite-Setup-1.6.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.6.0.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
+| 免安装 | [AudioSwitch-Portable-1.6.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.6.0.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
+| 精简免安装 | [AudioSwitch-Lite-1.6.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.6.0.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
 | 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 所有产物的 SHA-256 |
 
 所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，从浏览器下载后首次运行，Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
@@ -55,7 +55,7 @@ $s = irm https://raw.githubusercontent.com/yaanlaan/AudioSwitch/main/scripts/ins
 - **磁贴式切换器**：默认按 Alt+Tab 风格把设备排成圆角磁贴，当前设备有强调色边框和「当前」徽标；支持方向键、`Tab` / `Shift+Tab`、数字键 `1`–`9` 选择（首尾循环），`Enter` 切换，`Esc` 关闭。也可以切回紧凑的列表样式。
 - **单击切换**：单击任意设备立即切换系统默认输出设备，切换后可自动关闭弹窗。
 - **全局热键**：默认 `Ctrl+Alt+A`。设置里点一下录制框，**直接按下想要的组合键**即可生效；可随时关闭热键。
-- **音量控制**：按 `Ctrl+Alt+V`（可在设置 → 音量里改）打开音量弹窗，滑杆调总音量或单个应用的音量，支持静音；弹窗会列出当前正在发声的应用，并随音量变化实时刷新。
+- **音量控制**：按 `Ctrl+Alt+V`（可在设置 → 音量里改）打开音量弹窗，滑杆调总音量或单个应用的音量，支持静音；弹窗会列出当前正在发声的应用，并随音量变化实时刷新。支持键盘操作：`↑` / `↓` / `Tab` 循环选择条目，`←` / `→` 调节 2%，鼠标滚轮在条目上滚动调节 5%，`Esc` 关闭。
 - **分类设置页**：常规 / 外观 / 切换弹窗 / 音量 / 快捷键 / 关于，功能不再堆在一页。
 - **一体化标题栏**：自绘标题栏与内容共用同一层背景，深色/浅色/背景图模式下都不会出现割裂的色块。
 - **磨砂卡片**：选项卡片使用半透明玻璃材质，可调「卡片不透明度」，让桌面或背景图透出来。
@@ -95,7 +95,7 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 
 ## 安装（推荐）
 
-[AudioSwitch-Setup-1.5.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.5.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
+[AudioSwitch-Setup-1.6.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.6.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
 
 1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。不想出现这一步，可用上文的「一键安装」命令。
 2. 随后会出现 **UAC 管理员确认框**，点「是」。安装程序以管理员权限运行，避免从浏览器/聊天窗口打开时被系统限制成低权限、导致写入失败。
@@ -112,14 +112,14 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 也可以静默安装（适合脚本；仍会请求管理员权限，请在管理员 PowerShell 中执行）：
 
 ```powershell
-AudioSwitch-Setup-1.5.0.exe /S
-AudioSwitch-Setup-1.5.0.exe /S /D=C:\Tools\AudioSwitch
+AudioSwitch-Setup-1.6.0.exe /S
+AudioSwitch-Setup-1.6.0.exe /S /D=C:\Tools\AudioSwitch
 ```
 
 如果系统已经安装了 .NET 9 桌面运行时，也可以用体积只有约 0.3 MB 的精简版安装程序（安装流程、目录与卸载方式完全相同）：
 
 ```powershell
-AudioSwitch-Lite-Setup-1.5.0.exe /S
+AudioSwitch-Lite-Setup-1.6.0.exe /S
 ```
 
 精简版安装程序启动时会检查 `%ProgramFiles%\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`（以及用户级安装目录），找不到运行时则提示下载地址并中止，不会装出一个无法运行的程序。
@@ -130,9 +130,9 @@ AudioSwitch-Lite-Setup-1.5.0.exe /S
 
 ### 便携版
 
-[AudioSwitch-Portable-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.5.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
+[AudioSwitch-Portable-1.6.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.6.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
 
-如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.5.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.5.0.zip)（约 0.3 MB）；解压后的目录结构相同。
+如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.6.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.6.0.zip)（约 0.3 MB）；解压后的目录结构相同。
 
 解压后如果仍提示 SmartScreen，对该目录执行一次：
 
@@ -355,9 +355,9 @@ END|2
 `--check-update` 输出形如：
 
 ```text
-CURRENT|1.5.0
-LATEST|1.5.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.5.0
-SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.5.0/AudioSwitch-Setup-1.5.0.exe
+CURRENT|1.6.0
+LATEST|1.6.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.6.0
+SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.6.0/AudioSwitch-Setup-1.6.0.exe
 CHECK|uptodate
 ```
 
@@ -472,6 +472,7 @@ docs/appearance/    外观预览图
 
 ## 更新记录
 
+- **1.6.0** — 音量弹窗支持键盘与滚轮：`↑` / `↓` / `Tab`（`Shift+Tab` 反向）循环选择总音量或应用条目，`←` / `→` 调节 2%，鼠标滚轮在条目上调节 5%；选中的条目带强调色边框，列表刷新时保持选中项。
 - **1.5.0** — 新增音量控制：`Ctrl+Alt+V` 打开音量弹窗，可调总音量与单个应用的音量、静音，并实时刷新正在发声的应用；设置页新增「音量」分类与独立的快捷键录制；命令行新增 `--volume-info` / `--volume-set` / `--volume-app` / `--volume-test`。
 - **1.4.1** — 修复精简版覆盖安装到旧完整版目录后启动提示“需要安装 .NET”的问题：安装前自动清理残留的自包含运行库；README 补充对应排查说明。
 - **1.4.0** — 体积与内存优化：移除 WinForms（托盘改纯 Win32、自定义颜色改 WPF 取色器），完整安装包 46.2 → 39.7 MB、安装后 153 → 127 MB、常驻内存约降低三分之一；新增约 0.3 MB 的精简版安装程序/便携包（复用系统 .NET 9 运行时，安装前检查）。

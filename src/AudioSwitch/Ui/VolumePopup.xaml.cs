@@ -27,6 +27,7 @@ public sealed class VolumeSessionItem : INotifyPropertyChanged
     private string _subtitle = string.Empty;
     private double _volume;
     private bool _muted;
+    private bool _selected;
     private ImageSource? _icon;
 
     public VolumeSessionItem(AppVolumeSession session)
@@ -109,6 +110,13 @@ public sealed class VolumeSessionItem : INotifyPropertyChanged
     /// <summary>用户正在拖动滑杆时，后台刷新不要覆盖它。</summary>
     public bool IsDragging { get; set; }
 
+    /// <summary>键盘或滚轮当前选中的条目（总音量为行 0，应用从行 1 开始）。</summary>
+    public bool IsSelected
+    {
+        get => _selected;
+        set => SetField(ref _selected, value);
+    }
+
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
@@ -130,6 +138,8 @@ public partial class VolumePopup : Window
 {
     private const string MuteGlyph = "\uE74F";
     private const string VolumeGlyph = "\uE767";
+    private const int KeyStep = 2;
+    private const int WheelStep = 5;
 
     private readonly App _app;
     private readonly AudioVolumeService? _volume;
@@ -140,6 +150,8 @@ public partial class VolumePopup : Window
     private bool _refreshing;
     private bool _masterDragging;
     private bool _closing;
+    private int _selectedRow;
+    private uint? _selectedPid;
 
     public VolumePopup(App app)
     {
@@ -162,6 +174,7 @@ public partial class VolumePopup : Window
         Loaded += OnLoaded;
         Deactivated += OnDeactivated;
         PreviewKeyDown += OnPreviewKeyDown;
+        PreviewMouseWheel += OnPreviewMouseWheel;
         Closed += OnClosed;
 
         if (_app.Theme is not null)
@@ -204,6 +217,7 @@ public partial class VolumePopup : Window
     private void OnThemeChanged()
     {
         _app.Theme?.ApplyWindowEffects(this);
+        ApplySelection(scrollIntoView: false);
     }
 
     private void OnDeactivated(object? sender, EventArgs e)
@@ -218,11 +232,137 @@ public partial class VolumePopup : Window
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
+        switch (e.Key)
         {
-            Close();
-            e.Handled = true;
+            case Key.Escape:
+                Close();
+                e.Handled = true;
+                return;
+            case Key.Up:
+                MoveSelection(-1);
+                e.Handled = true;
+                return;
+            case Key.Down:
+                MoveSelection(1);
+                e.Handled = true;
+                return;
+            case Key.Tab:
+                MoveSelection(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : 1);
+                e.Handled = true;
+                return;
+            case Key.Left:
+                AdjustSelected(-KeyStep);
+                e.Handled = true;
+                return;
+            case Key.Right:
+                AdjustSelected(KeyStep);
+                e.Handled = true;
+                return;
         }
+    }
+
+    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (e.Delta == 0)
+        {
+            return;
+        }
+
+        VolumeSessionItem? item = FindSessionUnderMouse(e.OriginalSource as DependencyObject);
+        if (item is not null)
+        {
+            SelectRow(_items.IndexOf(item) + 1);
+        }
+        else if (MasterCard.IsMouseOver)
+        {
+            SelectRow(0);
+        }
+
+        AdjustSelected(e.Delta > 0 ? WheelStep : -WheelStep);
+        e.Handled = true;
+    }
+
+    /// <summary>在总音量（行 0）与应用条目（行 1..N）之间循环移动选择。</summary>
+    private void MoveSelection(int direction)
+    {
+        int total = _items.Count + 1;
+        _selectedRow = ((_selectedRow + direction) % total + total) % total;
+        ApplySelection(scrollIntoView: true);
+    }
+
+    private void SelectRow(int row)
+    {
+        _selectedRow = Math.Clamp(row, 0, _items.Count);
+        ApplySelection(scrollIntoView: false);
+    }
+
+    /// <summary>调节当前选中条目：总音量或单个应用，应用静音状态保持不变。</summary>
+    private void AdjustSelected(int delta)
+    {
+        _selectedRow = Math.Clamp(_selectedRow, 0, _items.Count);
+        if (_items.Count == 0)
+        {
+            _selectedRow = 0;
+        }
+
+        if (_selectedRow <= 0)
+        {
+            MasterSlider.Value = Math.Clamp(MasterSlider.Value + delta, 0, 100);
+            return;
+        }
+
+        VolumeSessionItem item = _items[_selectedRow - 1];
+        item.Volume = Math.Clamp(item.Volume + delta, 0, 100);
+        _volume?.SetSessionVolume(item.ProcessId, (float)(item.Volume / 100.0), item.Muted);
+    }
+
+    private void ApplySelection(bool scrollIntoView)
+    {
+        for (int i = 0; i < _items.Count; i++)
+        {
+            _items[i].IsSelected = i + 1 == _selectedRow;
+        }
+
+        Brush accent = (Brush)FindResource("AccentBrush");
+        MasterCard.BorderBrush = _selectedRow == 0 ? accent : Brushes.Transparent;
+        _selectedPid = _selectedRow > 0 && _selectedRow <= _items.Count
+            ? _items[_selectedRow - 1].ProcessId
+            : null;
+
+        if (scrollIntoView && _selectedRow > 0
+            && SessionList.ItemContainerGenerator.ContainerFromIndex(_selectedRow - 1) is FrameworkElement element)
+        {
+            element.BringIntoView();
+        }
+    }
+
+    private void NormalizeSelection()
+    {
+        if (_selectedPid is uint pid)
+        {
+            int index = _items.ToList().FindIndex(i => i.ProcessId == pid);
+            _selectedRow = index >= 0 ? index + 1 : 0;
+        }
+
+        _selectedRow = Math.Clamp(_selectedRow, 0, _items.Count);
+        ApplySelection(scrollIntoView: false);
+    }
+
+    private VolumeSessionItem? FindSessionUnderMouse(DependencyObject? source)
+    {
+        while (source is not null && source != SessionList)
+        {
+            if (source is FrameworkElement { DataContext: VolumeSessionItem item })
+            {
+                return item;
+            }
+
+            source = source is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(source)
+                : LogicalTreeHelper.GetParent(source);
+        }
+
+        return null;
     }
 
     private void OnTimerTick(object? sender, EventArgs e)
@@ -343,6 +483,7 @@ public partial class VolumePopup : Window
         SessionCountText.Text = _items.Count == 0 ? string.Empty : $"· {_items.Count}";
         EmptyText.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         SessionList.Visibility = _items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        NormalizeSelection();
     }
 
     private string ResolveDeviceName()

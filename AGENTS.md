@@ -65,6 +65,7 @@ docs/appearance/ 由 --render-all 生成的界面截图
 - **设备切换**：只通过 `AudioDeviceService.SetDefault(id, includeCommunications)` / `SetRoleDefault` 修改三个角色；UI 层不要直接 P/Invoke 音频接口。
 - **音量**：总音量走 `IAudioEndpointVolume`，应用音量走 `IAudioSessionManager2` + `ISimpleAudioVolume`；会话按 PID 合并（系统声音为 0），`AudioVolumeService.TryGetDefaultDevice` 默认用 `eMultimedia`、失败回退 `eConsole`。`IAudioSessionControl2` 是独立声明而非继承 `IAudioSessionControl`，改 vtable 时必须按完整槽位顺序。
 - **双热键**：切换器热键 id `0xA571`、音量热键 id `0xA572`，`GlobalHotkey` 构造参数区分；两个弹窗互斥，打开一个会关闭另一个。
+- **音量弹窗交互**：选择模型只有一条轴——行 0 是总音量，行 1..N 是应用；`↑`/`↓`/`Tab` 循环移动，`←`/`→` 调 2%，滚轮在条目上调 5%。键盘与滚轮都在 `Window.PreviewKeyDown` / `PreviewMouseWheel` 里处理，因为获得焦点的 `Slider` 会自己消费方向键；选中项用 `VolumeSessionItem.IsSelected` 绑定边框，刷新时按 PID 保持选中。
 - **托盘**：`Ui/TrayIcon` 不依赖 WinForms，用 `Interop/TrayNative` 的 `Shell_NotifyIcon` + 屏幕外隐藏窗口（`"AudioSwitchTrayWindow"`）接收 `WM_APP+1` 回调；`TaskbarCreated` 后重新注册。不要为省事改回 WinForms（会多引入约 24 MB 运行时）。
 - **取色器**：`Ui/ColorPickerDialog` 是自绘 WPF 窗口，颜色校验统一走 `AppSettings.TryParseColor`，不要另写解析。
 - **精简版**：同一份源码，`build-installer.ps1` 额外发布 self-contained=false 的 `build\app-lite`；NSIS 以 `/DLITE` 编译并检查 `%ProgramFiles%\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`（以及用户级目录）。
