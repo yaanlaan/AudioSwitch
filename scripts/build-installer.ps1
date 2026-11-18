@@ -3,7 +3,7 @@
 #   pwsh -File scripts\build-installer.ps1
 #
 # 产物：
-#   dist\AudioSwitch-Setup-<版本>.exe      按用户安装的安装程序（无需管理员）
+#   dist\AudioSwitch-Setup-<版本>.exe      按用户安装的安装程序（启动时请求 UAC 管理员权限）
 #   dist\AudioSwitch-Portable-<版本>.zip   便携版（解压即用，不含单文件自解压）
 param(
     [string]$Configuration = 'Release',
