@@ -7,6 +7,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using AudioSwitch.Audio;
 using AudioSwitch.Interop;
+using AudioSwitch.Ui;
 
 namespace AudioSwitch.Services;
 
@@ -47,8 +48,33 @@ internal static class Cli
             "--theme-info" => RunThemeInfo(),
             "--check-update" => RunCheckUpdate(args),
             "--download-update" => RunDownloadUpdate(args),
+            "--tray-test" => RunTrayTest(),
             _ => null,
         };
+    }
+
+    /// <summary>验证 Shell_NotifyIcon 托盘图标能否注册与更新提示。</summary>
+    private static int RunTrayTest()
+    {
+        try
+        {
+            using var tray = new TrayIcon();
+            if (!tray.IsAvailable)
+            {
+                Print($"TRAY|FAIL|{(string.IsNullOrEmpty(tray.LastError) ? "Shell_NotifyIcon 注册失败" : tray.LastError)}");
+                return 1;
+            }
+
+            tray.SetTooltip("AudioSwitch 托盘测试");
+            tray.ShowBalloon("AudioSwitch", "托盘图标工作正常。");
+            Print("TRAY|OK|托盘图标已注册");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Print($"TRAY|FAIL|{ex.Message}");
+            return 1;
+        }
     }
 
     /// <summary>验证按键串能否被解析并真正注册为全局热键。</summary>

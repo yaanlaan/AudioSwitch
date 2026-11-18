@@ -1,6 +1,7 @@
-﻿; AudioSwitch 安装程序（NSIS 3.11，按用户安装，无需管理员）
+﻿; AudioSwitch 安装程序（NSIS 3.11，按用户安装；启动时请求 UAC 管理员权限）
 ; 安装流程：解压负载到临时目录 -> 用 robocopy 带重试复制到安装目录 -> 校验 -> 写快捷方式与卸载项
 ; 这样即使杀毒软件在复制瞬间扫描/锁定某个 dll，也能通过重试完成安装，而不是直接失败。
+; 用 /DLITE 编译精简版：负载来自 build\app-lite，安装前检查 .NET 9 桌面运行时。
 Unicode true
 SetCompressor /SOLID lzma
 SetCompressorDictSize 64
@@ -13,15 +14,24 @@ BrandingText "AudioSwitch"
 
 !define APP_NAME "AudioSwitch"
 !ifndef APP_VERSION
-  !define APP_VERSION "1.2.4"
+  !define APP_VERSION "1.4.0"
+!endif
+!ifdef LITE
+  !define PAYLOAD_DIR "..\build\app-lite"
+  !define SETUP_FILE "..\dist\AudioSwitch-Lite-Setup-${APP_VERSION}.exe"
+  !define FLAVOR_LABEL " 精简版"
+!else
+  !define PAYLOAD_DIR "..\build\app"
+  !define SETUP_FILE "..\dist\AudioSwitch-Setup-${APP_VERSION}.exe"
+  !define FLAVOR_LABEL ""
 !endif
 !define APP_EXE "AudioSwitch.exe"
 !define APP_PUBLISHER "AudioSwitch"
 !define APP_REGKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\AudioSwitch"
 !define INSTALL_LOG "$TEMP\AudioSwitch-install.log"
 
-Name "${APP_NAME} ${APP_VERSION}"
-OutFile "..\dist\AudioSwitch-Setup-${APP_VERSION}.exe"
+Name "${APP_NAME} ${APP_VERSION}${FLAVOR_LABEL}"
+OutFile "${SETUP_FILE}"
 InstallDir "$LOCALAPPDATA\Programs\AudioSwitch"
 InstallDirRegKey HKCU "Software\AudioSwitch" "InstallDir"
 Icon "..\src\AudioSwitch\Assets\app.ico"
@@ -37,8 +47,12 @@ VIAddVersionKey "LegalCopyright" ""
 !define MUI_ICON "..\src\AudioSwitch\Assets\app.ico"
 !define MUI_UNICON "..\src\AudioSwitch\Assets\app.ico"
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "安装 AudioSwitch ${APP_VERSION}"
-!define MUI_WELCOMEPAGE_TEXT "AudioSwitch 是一个常驻托盘的 Windows 音频输出切换工具。$\r$\n$\r$\n安装会请求管理员权限（Windows 会弹出 UAC 确认框），以确保文件写入不会被安全策略拦截。程序安装在当前用户目录中，不修改系统目录。$\r$\n$\r$\n点击“下一步”继续。"
+!define MUI_WELCOMEPAGE_TITLE "安装 AudioSwitch ${APP_VERSION}${FLAVOR_LABEL}"
+!ifdef LITE
+  !define MUI_WELCOMEPAGE_TEXT "AudioSwitch 是一个常驻托盘的 Windows 音频输出切换工具。$\r$\n$\r$\n这是精简版：程序本体只有约 1 MB，但需要系统已安装 .NET 9 桌面运行时（x64）。安装程序会先检查运行时，缺少时会给出下载地址。$\r$\n$\r$\n安装会请求管理员权限（Windows 会弹出 UAC 确认框），以确保文件写入不会被安全策略拦截。程序安装在当前用户目录中，不修改系统目录。$\r$\n$\r$\n点击“下一步”继续。"
+!else
+  !define MUI_WELCOMEPAGE_TEXT "AudioSwitch 是一个常驻托盘的 Windows 音频输出切换工具。$\r$\n$\r$\n安装会请求管理员权限（Windows 会弹出 UAC 确认框），以确保文件写入不会被安全策略拦截。程序安装在当前用户目录中，不修改系统目录。$\r$\n$\r$\n点击“下一步”继续。"
+!endif
 !define MUI_DIRECTORYPAGE_TEXT_TOP "安装程序已请求管理员权限（UAC）。默认装到当前用户目录 $\"$LOCALAPPDATA\Programs\AudioSwitch$\"，不修改系统目录；也可以用下面的按钮换到其他位置。"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"
 !define MUI_FINISHPAGE_RUN_TEXT "立即启动 AudioSwitch"
@@ -57,7 +71,11 @@ VIAddVersionKey "LegalCopyright" ""
 
 !insertmacro MUI_LANGUAGE "SimpChinese"
 
+!ifdef LITE
+LangString DESC_CORE ${LANG_SIMPCHINESE} "AudioSwitch 主程序（精简版，需要已安装 .NET 9 桌面运行时）。"
+!else
 LangString DESC_CORE ${LANG_SIMPCHINESE} "AudioSwitch 主程序与运行库（必需）。"
+!endif
 LangString DESC_DESKTOP ${LANG_SIMPCHINESE} "在桌面创建 AudioSwitch 快捷方式。"
 LangString DESC_STARTUP ${LANG_SIMPCHINESE} "登录 Windows 时在托盘静默启动，不显示窗口。"
 
@@ -65,8 +83,43 @@ LangString DESC_STARTUP ${LANG_SIMPCHINESE} "登录 Windows 时在托盘静默�
   FileWrite $9 "${TEXT}$\r$\n"
 !macroend
 
+!ifdef LITE
+; 精简版依赖 .NET 9 桌面运行时（x64）；按标准安装目录检查 9.x 版本
+Function CheckDotNetRuntime
+  StrCpy $R4 0
+
+  FindFirst $0 $1 "$PROGRAMFILES64\dotnet\shared\Microsoft.WindowsDesktop.App\9.*"
+  ${If} $1 != ""
+    StrCpy $R4 1
+  ${EndIf}
+  FindClose $0
+
+  ${If} $R4 != 1
+    FindFirst $0 $1 "$LOCALAPPDATA\Microsoft\dotnet\shared\Microsoft.WindowsDesktop.App\9.*"
+    ${If} $1 != ""
+      StrCpy $R4 1
+    ${EndIf}
+    FindClose $0
+  ${EndIf}
+
+  ${If} $R4 != 1
+    FileOpen $9 "${INSTALL_LOG}" a
+    ${If} $9 != ""
+      !insertmacro LOG_TEXT "missing: .NET 9 Desktop Runtime (x64)"
+      FileClose $9
+    ${EndIf}
+    MessageBox MB_ICONSTOP|MB_OK ".NET 9 桌面运行时（x64）未安装，精简版无法运行。$\r$\n$\r$\n请先安装运行时：$\r$\nhttps://dotnet.microsoft.com/download/dotnet/9.0$\r$\n$\r$\n或者改用“完整版”安装包（自带运行时，无需额外安装）。"
+    Abort
+  ${EndIf}
+FunctionEnd
+!endif
+
 Function .onInit
   InitPluginsDir
+
+  !ifdef LITE
+    Call CheckDotNetRuntime
+  !endif
 
   ; 只允许一个安装实例
   System::Call 'kernel32::CreateMutex(p 0, i 0, t "AudioSwitchSetupMutex") p .r1 ?e'
@@ -192,7 +245,7 @@ Section "AudioSwitch 程序（必需）" SEC_CORE
 
   ; 先在临时目录展开负载，再复制，避免逐个文件写入时被安全软件锁定导致整体失败
   SetOutPath "$PLUGINSDIR\payload"
-  File /r "..\build\app\*.*"
+  File /r "${PAYLOAD_DIR}\*.*"
   File "..\README.md"
 
   CreateDirectory "$INSTDIR"
@@ -206,7 +259,9 @@ Section "AudioSwitch 程序（必需）" SEC_CORE
   ; 校验关键文件确实落地
   ClearErrors
   IfFileExists "$INSTDIR\${APP_EXE}" 0 missing_core
-  IfFileExists "$INSTDIR\Accessibility.dll" 0 missing_core
+  !ifndef LITE
+    IfFileExists "$INSTDIR\Accessibility.dll" 0 missing_core
+  !endif
   Goto core_ok
   missing_core:
     MessageBox MB_ICONSTOP|MB_OK "安装后的文件不完整（关键文件缺失）。$\r$\n$\r$\n这通常是安全软件删除了刚写入的文件。请把安装目录加入白名单，或改用便携版 zip。$\r$\n$\r$\n详细日志：${INSTALL_LOG}"

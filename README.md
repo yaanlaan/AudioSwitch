@@ -9,15 +9,17 @@
 
 *A tiny tray utility for switching the default Windows audio output device — with a Win11-style Alt+Tab picker, dark/light themes, acrylic cards and global hotkey.*
 
-v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分类导航，以及类似 Win11 Alt+Tab 的磁贴式切换弹窗。v1.3 增加了 `Tab` 循环选择与内置更新检查。
+v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分类导航，以及类似 Win11 Alt+Tab 的磁贴式切换弹窗。v1.3 增加了 `Tab` 循环选择与内置更新检查。v1.4 精简了体积与内存：完整安装包约 40 MB（原 46 MB），安装后约 127 MB（原 153 MB），常驻内存约降低三分之一；另提供约 0.3 MB 的精简版（复用系统 .NET 运行时）。
 
 ## 下载
 
 | 方式 | 文件 | 说明 |
 | --- | --- | --- |
-| **安装版（推荐）** | [AudioSwitch-Setup-1.3.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.3.0.exe) | 按用户安装，写入开始菜单与卸载项；启动时请求一次 UAC |
-| 免安装 | [AudioSwitch-Portable-1.3.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.3.0.zip) | 解压即用，不写注册表、不需要管理员 |
-| 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 两个产物的 SHA-256 |
+| **安装版（推荐）** | [AudioSwitch-Setup-1.4.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.0.exe) | 约 40 MB，自带 .NET 运行时；按用户安装，启动时请求一次 UAC |
+| 精简安装版 | [AudioSwitch-Lite-Setup-1.4.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-Setup-1.4.0.exe) | 约 0.3 MB，需要系统已安装 .NET 9 桌面运行时（x64）；安装前会自动检查 |
+| 免安装 | [AudioSwitch-Portable-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.0.zip) | 约 57 MB，解压即用，不写注册表、不需要管理员 |
+| 精简免安装 | [AudioSwitch-Lite-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.0.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
+| 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 所有产物的 SHA-256 |
 
 所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，首次运行时 Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
 
@@ -49,13 +51,29 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 ## 系统要求
 
 - Windows 10 1809 及以上 / Windows 11，x64
-- 安装程序会安装自包含运行时，**无需预装 .NET**
+- **完整版**（`AudioSwitch-Setup` / `AudioSwitch-Portable`）自带 .NET 运行时，无需预装
+- **精简版**（`AudioSwitch-Lite-*`）需要已安装 [.NET 9 桌面运行时（x64）](https://dotnet.microsoft.com/download/dotnet/9.0)；安装程序会自动检查，缺少时给出下载地址
 - 安装程序会请求管理员权限（UAC 确认框），用于保证文件写入不被安全策略拦截；程序仍安装在当前用户目录 `%LOCALAPPDATA%\Programs\AudioSwitch`。便携版不需要管理员
 - 磨砂玻璃需要 Windows 11（22H2 及以上效果最佳），Windows 10 会使用纯色/半透明回退
 
+## 体积与资源占用
+
+v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜色改用 WPF 对话框），并同时提供复用系统运行时的精简版：
+
+| 指标 | v1.3 | v1.4 |
+| --- | --- | --- |
+| 完整版安装包 | 46.2 MB | **39.7 MB** |
+| 完整版便携包 | 65.9 MB | **57.0 MB** |
+| 安装后磁盘占用 | 153 MB | **127 MB** |
+| 托盘常驻内存（工作集） | 162.7 MB | **105.7 MB** |
+| 托盘常驻内存（专用） | 117.8 MB | **53.8 MB** |
+| 精简版安装包 | — | **0.3 MB** |
+
+精简版不含运行时，只包含程序本体（约 1 MB，压缩后约 0.3 MB）；功能与完整版完全一致，区别仅是启动时使用系统安装的 .NET 9 桌面运行时。
+
 ## 安装（推荐）
 
-[AudioSwitch-Setup-1.3.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.3.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
+[AudioSwitch-Setup-1.4.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
 
 1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。
 2. 随后会出现 **UAC 管理员确认框**，点「是」。安装程序以管理员权限运行，避免从浏览器/聊天窗口打开时被系统限制成低权限、导致写入失败。
@@ -72,9 +90,17 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 也可以静默安装（适合脚本；仍会请求管理员权限，请在管理员 PowerShell 中执行）：
 
 ```powershell
-AudioSwitch-Setup-1.3.0.exe /S
-AudioSwitch-Setup-1.3.0.exe /S /D=C:\Tools\AudioSwitch
+AudioSwitch-Setup-1.4.0.exe /S
+AudioSwitch-Setup-1.4.0.exe /S /D=C:\Tools\AudioSwitch
 ```
+
+如果系统已经安装了 .NET 9 桌面运行时，也可以用体积只有约 0.3 MB 的精简版安装程序（安装流程、目录与卸载方式完全相同）：
+
+```powershell
+AudioSwitch-Lite-Setup-1.4.0.exe /S
+```
+
+精简版安装程序启动时会检查 `%ProgramFiles%\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`（以及用户级安装目录），找不到运行时则提示下载地址并中止，不会装出一个无法运行的程序。
 
 卸载：开始菜单 → AudioSwitch → 「卸载 AudioSwitch」，或「设置 → 应用 → 已安装的应用」中找到 AudioSwitch（卸载同样会请求一次 UAC）。
 
@@ -82,7 +108,9 @@ AudioSwitch-Setup-1.3.0.exe /S /D=C:\Tools\AudioSwitch
 
 ### 便携版
 
-[AudioSwitch-Portable-1.3.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.3.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
+[AudioSwitch-Portable-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.4.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
+
+如果系统已有 .NET 9 桌面运行时，可以下载体积更小的 [AudioSwitch-Lite-1.4.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.0.zip)（约 0.3 MB）；解压后的目录结构相同。
 
 解压后如果仍提示 SmartScreen，对该目录执行一次：
 
@@ -193,6 +221,10 @@ Get-ChildItem -Recurse -File | Unblock-File
 | --- | --- |
 | ![](docs/appearance/popup-dark-image.png) | ![](docs/appearance/popup-list-dark-solid.png) |
 
+| 关于与更新检查 | 自定义强调色（取色器） |
+| --- | --- |
+| ![](docs/appearance/settings-about-dark-solid.png) | ![](docs/appearance/color-dialog-dark-solid.png) |
+
 更多截图见 [`docs/appearance`](docs/appearance)。
 
 ### 数据与日志
@@ -229,6 +261,9 @@ AudioSwitch.exe --hotkey-test "F8"
 # 查看系统主题、强调色、壁纸取色与 DWM 磨砂是否可用
 AudioSwitch.exe --theme-info
 
+# 验证托盘图标能否注册（退出码 0/1；远程/无交互桌面可能失败）
+AudioSwitch.exe --tray-test
+
 # 检查 GitHub 上是否有新版本（输出 CURRENT / LATEST / SETUP / CHECK）
 AudioSwitch.exe --check-update
 AudioSwitch.exe --check-update 1.2.0   # 用指定版本号做比较测试
@@ -263,9 +298,9 @@ BACKDROP|acrylic|OK|backdrop=acrylic
 `--check-update` 输出形如：
 
 ```text
-CURRENT|1.3.0
-LATEST|1.3.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.3.0
-SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.3.0/AudioSwitch-Setup-1.3.0.exe
+CURRENT|1.4.0
+LATEST|1.4.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.4.0
+SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.4.0/AudioSwitch-Setup-1.4.0.exe
 CHECK|uptodate
 ```
 
@@ -291,7 +326,7 @@ dotnet run --project src\AudioSwitch\AudioSwitch.csproj
 # 当前主题下的设置窗口与弹窗
 AudioSwitch.exe --render all shots
 
-# 深/浅 × 纯色/背景图，外加各功能页与磁贴/列表弹窗，共 13 张
+# 深/浅 × 纯色/背景图，外加各功能页、磁贴/列表弹窗与取色器，共 14 张
 AudioSwitch.exe --render-all docs\appearance --bg docs\wallpaper.png
 ```
 
@@ -301,14 +336,16 @@ AudioSwitch.exe --render-all docs\appearance --bg docs\wallpaper.png
 pwsh -File scripts\build-installer.ps1
 ```
 
-脚本会：结束正在运行的实例 → 发布文件夹版本到 `build\app` → 打包便携版 zip → 下载 NSIS（首次）→ 编译安装程序。
+脚本会：结束正在运行的实例 → 发布完整版到 `build\app`（自带运行时）→ 发布精简版到 `build\app-lite`（依赖系统运行时）→ 打包两个便携版 zip → 下载 NSIS（首次）→ 编译完整版与 `/DLITE` 精简版安装程序。
 
 产物：
 
-- `dist\AudioSwitch-Setup-<版本>.exe`（约 46 MB，会请求 UAC，按用户安装）
-- `dist\AudioSwitch-Portable-<版本>.zip`（约 66 MB，解压即用）
+- `dist\AudioSwitch-Setup-<版本>.exe`（约 40 MB，自带运行时，会请求 UAC，按用户安装）
+- `dist\AudioSwitch-Portable-<版本>.zip`（约 57 MB，解压即用）
+- `dist\AudioSwitch-Lite-Setup-<版本>.exe`（约 0.3 MB，要求已安装 .NET 9 桌面运行时）
+- `dist\AudioSwitch-Lite-<版本>.zip`（约 0.3 MB，同上）
 
-安装程序用 NSIS 编写（[installer/installer.nsi](installer/installer.nsi)），安装到 `%LOCALAPPDATA%\Programs\AudioSwitch`，写入开始菜单/桌面快捷方式与当前用户的卸载项。
+安装程序用 NSIS 编写（[installer/installer.nsi](installer/installer.nsi)），安装到 `%LOCALAPPDATA%\Programs\AudioSwitch`，写入开始菜单/桌面快捷方式与当前用户的卸载项；`/DLITE` 会启用运行时检查并改用精简版负载。
 
 ### 单文件版本
 
@@ -329,21 +366,22 @@ pwsh -File scripts\publish.ps1
 - 设置窗口用 `WindowChrome` 自绘标题栏，`TintLayer / BackgroundImageLayer / ScrimLayer` 三层铺满整窗，卡片使用带透明度的 `GlassBrush`，因此标题栏、内容与背景图是同一块材质。
 - 磨砂使用 DWM 的 `DWMWA_SYSTEMBACKDROP_TYPE`（Windows 11 22H2+）或 `SetWindowCompositionAttribute` 的 Acrylic 模糊，失败时逐级回退并写入日志。
 - 设备选择器用 `WrapPanel` + 自定义 `ListBoxItem` 模板渲染磁贴，列数由设置或设备数量决定，窗口尺寸随内容计算。
-- 全项目零 NuGet 依赖，COM 互操作全部手写，托盘使用 WinForms `NotifyIcon`，热键使用 `RegisterHotKey`。
+- 托盘图标直接用 `Shell_NotifyIcon`（`NOTIFYICONDATAW` + 屏幕外隐藏窗口接收回调），自定义颜色使用自绘的 WPF 取色对话框；v1.4 起项目不再引用 WinForms，发布体积因此减少约 26 MB。
+- 全项目零 NuGet 依赖，COM / Win32 互操作全部手写，热键使用 `RegisterHotKey`。
 
 ## 项目结构
 
 ```text
 src/AudioSwitch/
-  Interop/        Core Audio、IPolicyConfig、DWM 与 Win32 互操作
+  Interop/        Core Audio、IPolicyConfig、DWM、托盘与 Win32 互操作
   Audio/          设备枚举、默认设备读写
-  Services/       设置、日志、开机自启、单实例、命令行
-  Ui/             主题服务、调色板、背景图、托盘、热键、弹窗与设置窗口
+  Services/       设置、日志、开机自启、单实例、命令行、更新检查
+  Ui/             主题服务、调色板、背景图、托盘、热键、弹窗、设置窗口、取色器
   Assets/         应用图标
 tools/              图标与示例壁纸生成脚本（Pillow / numpy）
 scripts/publish.ps1 单文件发布脚本
-scripts/build-installer.ps1 安装程序与便携版打包脚本
-installer/installer.nsi NSIS 安装脚本
+scripts/build-installer.ps1 完整版/精简版安装程序与便携版打包脚本
+installer/installer.nsi NSIS 安装脚本（/DLITE 为精简版）
 docs/appearance/    外观预览图
 ```
 
@@ -354,6 +392,8 @@ docs/appearance/    外观预览图
 - 设备列表来自 `DEVICE_STATE_ACTIVE` 端点，已禁用的设备不会显示。
 - 磨砂玻璃依赖 DWM；在远程桌面、关闭「透明效果」或旧版 Windows 上会回退为纯色。
 - 背景图片仅用于窗口装饰，不做任何图像处理（缩放/模糊在内存中完成，不回写文件）。
+- 精简版依赖系统安装的 .NET 9 桌面运行时；完整版无此要求。
+- 托盘图标依赖资源管理器通知区域：在服务会话、无交互桌面的远程环境里无法注册（`--tray-test` 会返回错误 5），普通登录桌面不受影响。
 - 未做代码签名：安装程序首次运行可能触发 SmartScreen；安装后的程序不带网络标记，通常不会再提示。若系统开启了 Smart App Control，未签名程序仍可能被阻止，只能关闭该功能或使用签名版本。
 
 ## 排查
@@ -372,6 +412,7 @@ docs/appearance/    外观预览图
 
 ## 更新记录
 
+- **1.4.0** — 体积与内存优化：移除 WinForms（托盘改纯 Win32、自定义颜色改 WPF 取色器），完整安装包 46.2 → 39.7 MB、安装后 153 → 127 MB、常驻内存约降低三分之一；新增约 0.3 MB 的精简版安装程序/便携包（复用系统 .NET 9 运行时，安装前检查）。
 - **1.3.0** — 切换弹窗支持 `Tab` / `Shift+Tab` 与方向键首尾循环选择；「关于」页新增更新检查，可下载并启动新版本安装包，支持启动时自动检查。
 - **1.2.4** — 安装程序声明 `requireAdministrator`，启动即请求 UAC，彻底避免低权限导致的写入失败；安装前做写入测试，失败时给出可操作提示。
 - **1.2.3** — 检测低完整性级别（...\Temp\Low）环境，提示以管理员身份重启安装。

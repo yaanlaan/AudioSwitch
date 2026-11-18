@@ -55,6 +55,13 @@ internal static class DevRenderer
                 SavePng(RenderPopup(app, "cards", out Size size), size, path);
                 Console.Out.WriteLine($"RENDER|popup|{path}|{size.Width}x{size.Height}");
             }
+
+            if (target is "all" or "color")
+            {
+                string path = Path.Combine(outputDir, "color.png");
+                SavePng(RenderColorDialog(out Size size), size, path);
+                Console.Out.WriteLine($"RENDER|color|{path}|{size.Width}x{size.Height}");
+            }
         }
         catch (Exception ex)
         {
@@ -159,6 +166,10 @@ internal static class DevRenderer
             string listPopupPath = Path.Combine(outputDir, "popup-list-dark-solid.png");
             SavePng(RenderPopup(app, "list", out Size listSize), listSize, listPopupPath);
             Console.Out.WriteLine($"RENDER|popup-list-dark-solid|{listPopupPath}|{listSize.Width}x{listSize.Height}");
+
+            string colorPath = Path.Combine(outputDir, "color-dialog-dark-solid.png");
+            SavePng(RenderColorDialog(out Size colorSize), colorSize, colorPath);
+            Console.Out.WriteLine($"RENDER|color-dialog-dark-solid|{colorPath}|{colorSize.Width}x{colorSize.Height}");
         }
         catch (Exception ex)
         {
@@ -244,6 +255,38 @@ internal static class DevRenderer
         {
             app.Settings.PopupStyle = previousStyle;
         }
+    }
+
+    private static FrameworkElement RenderColorDialog(out Size size)
+    {
+        var dialog = new ColorPickerDialog(AppSettings.DefaultAccent)
+        {
+            SizeToContent = SizeToContent.Manual,
+            Height = 464,
+        };
+
+        if (dialog.Content is not FrameworkElement content)
+        {
+            throw new InvalidOperationException("取色对话框没有内容");
+        }
+
+        dialog.Content = null;
+
+        var available = new Size(dialog.Width, 2000);
+        content.Measure(available);
+        Size desired = content.DesiredSize;
+        size = new Size(dialog.Width, Math.Ceiling(desired.Height));
+
+        var host = new Border
+        {
+            Background = new SolidColorBrush(DeskColor),
+            Child = content,
+            Width = size.Width,
+            Height = size.Height,
+        };
+
+        Layout(host, size);
+        return host;
     }
 
     private static void Layout(FrameworkElement element, Size size)

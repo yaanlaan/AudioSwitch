@@ -11,7 +11,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using AudioSwitch.Interop;
 using AudioSwitch.Services;
-using Forms = System.Windows.Forms;
 
 namespace AudioSwitch.Ui;
 
@@ -323,19 +322,17 @@ public partial class SettingsWindow : Window
     {
         try
         {
-            using var dialog = new Forms.ColorDialog
+            var dialog = new ColorPickerDialog(_app.Settings.AccentColor)
             {
-                FullOpen = true,
-                AnyColor = true,
-                Color = ParseMediaColor(_app.Settings.AccentColor),
+                Owner = this,
             };
 
-            if (dialog.ShowDialog() != Forms.DialogResult.OK)
+            if (dialog.ShowDialog() != true)
             {
                 return;
             }
 
-            string hex = $"#{dialog.Color.R:X2}{dialog.Color.G:X2}{dialog.Color.B:X2}";
+            string hex = dialog.SelectedHex;
             _app.Settings.AccentColor = hex;
             _app.Settings.ColorSource = "fixed";
             _app.SaveSettings();
@@ -350,20 +347,6 @@ public partial class SettingsWindow : Window
             Log.Error("打开取色器失败", ex);
             SetFooterStatus("无法打开系统取色器", isError: true);
         }
-    }
-
-    private static System.Drawing.Color ParseMediaColor(string? hex)
-    {
-        if (AppSettings.TryParseColor(hex, out uint argb))
-        {
-            return System.Drawing.Color.FromArgb(
-                0xFF,
-                (byte)((argb >> 16) & 0xFF),
-                (byte)((argb >> 8) & 0xFF),
-                (byte)(argb & 0xFF));
-        }
-
-        return System.Drawing.Color.FromArgb(0x5B, 0x9D, 0xFF);
     }
 
     private void MaterialRadio_Checked(object sender, RoutedEventArgs e)
