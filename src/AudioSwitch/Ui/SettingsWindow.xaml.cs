@@ -21,6 +21,7 @@ public partial class SettingsWindow : Window
     private bool _initializing = true;
     private bool _suppressNavigation;
     private bool _recordingHotkey;
+    private bool _checkedUpdates;
     private DispatcherTimer? _saveDebounce;
 
     public SettingsWindow(App app)
@@ -129,6 +130,9 @@ public partial class SettingsWindow : Window
         UpdatePopupControls();
         UpdateHotkeyDisplay();
         SettingsPathText.Text = SettingsStore.FilePath;
+
+        AutoCheckUpdatesToggle.IsChecked = settings.AutoCheckUpdates;
+        RefreshUpdateState();
     }
 
     private void UpdateAppearanceControls()
@@ -784,6 +788,140 @@ public partial class SettingsWindow : Window
             Log.Error("打开系统声音设置失败", ex);
             SetFooterStatus("无法打开系统声音设置", isError: true);
         }
+    }
+
+    private void AutoCheckUpdatesToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (_initializing)
+        {
+            return;
+        }
+
+        _app.Settings.AutoCheckUpdates = AutoCheckUpdatesToggle.IsChecked == true;
+        _app.SaveSettings();
+        SetFooterStatus(_app.Settings.AutoCheckUpdates ? "将在启动时自动检查更新" : "已关闭启动时自动检查更新", isError: false);
+
+        if (_app.Settings.AutoCheckUpdates)
+        {
+            _ = _app.CheckForUpdatesAsync(notify: false);
+        }
+    }
+
+    private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        CheckUpdateButton.IsEnabled = false;
+        DownloadUpdateButton.IsEnabled = false;
+        SetUpdateStatus("正在检查更新…");
+
+        try
+        {
+            UpdateInfo? update = await _app.CheckForUpdatesAsync(notify: false);
+            _checkedUpdates = true;
+            RefreshUpdateState();
+
+            if (update is not null)
+            {
+                SetFooterStatus($"发现新版本 {update.DisplayVersion}", isError: false);
+            }
+            else if (_app.UpdateError is null)
+            {
+                SetFooterStatus("已是最新版本", isError: false);
+            }
+            else
+            {
+                SetFooterStatus("检查更新失败", isError: true);
+            }
+        }
+        finally
+        {
+            CheckUpdateButton.IsEnabled = true;
+            DownloadUpdateButton.IsEnabled = true;
+        }
+    }
+
+    private async void DownloadUpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateInfo? update = _app.LatestUpdate;
+        if (update is null)
+        {
+            return;
+        }
+
+        CheckUpdateButton.IsEnabled = false;
+        DownloadUpdateButton.IsEnabled = false;
+
+        try
+        {
+            var progress = new Progress<double>(percent =>
+                SetUpdateStatus($"正在下载安装包… {percent:P0}"));
+            string path = await UpdateService.DownloadSetupAsync(update, progress: progress);
+
+            SetUpdateStatus("下载完成，正在启动安装程序…");
+            Log.Info($"启动版本更新：{update.DisplayVersion} -> {path}");
+            UpdateService.LaunchInstaller(path);
+            _app.ExitApplication();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("下载更新失败", ex);
+            SetUpdateStatus($"下载失败：{ex.Message}");
+            SetFooterStatus("下载更新失败", isError: true);
+            CheckUpdateButton.IsEnabled = true;
+            DownloadUpdateButton.IsEnabled = true;
+        }
+    }
+
+    private void ReleaseNotesButton_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateInfo? update = _app.LatestUpdate;
+        try
+        {
+            UpdateService.OpenReleasePage(update?.ReleaseUrl ?? string.Empty);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("打开更新说明失败", ex);
+            SetFooterStatus("无法打开更新说明", isError: true);
+        }
+    }
+
+    private void RefreshUpdateState()
+    {
+        UpdateInfo? update = _app.LatestUpdate;
+        string current = UpdateService.CurrentVersion.ToString(3);
+
+        if (update is not null)
+        {
+            SetUpdateStatus($"发现新版本 {update.DisplayVersion}（当前 v{current}）。");
+            DownloadUpdateButton.Visibility = string.IsNullOrWhiteSpace(update.SetupUrl)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ReleaseNotesButton.Visibility = string.IsNullOrWhiteSpace(update.ReleaseUrl)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            return;
+        }
+
+        DownloadUpdateButton.Visibility = Visibility.Collapsed;
+        ReleaseNotesButton.Visibility = Visibility.Collapsed;
+
+        if (_app.UpdateError is not null)
+        {
+            SetUpdateStatus($"检查失败：{_app.UpdateError}");
+        }
+        else if (_checkedUpdates)
+        {
+            SetUpdateStatus($"已是最新版本 v{current}。");
+        }
+        else
+        {
+            SetUpdateStatus("尚未检查更新。");
+        }
+    }
+
+    private void SetUpdateStatus(string text)
+    {
+        UpdateStatusText.Text = text;
     }
 
     private void MinButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;

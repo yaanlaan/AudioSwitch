@@ -20,6 +20,9 @@ public partial class App : Application
     private ThemeService? _theme;
     private SwitcherPopup? _popup;
     private SettingsWindow? _settingsWindow;
+    private UpdateInfo? _latestUpdate;
+    private string? _updateError;
+    private bool _updateCheckRunning;
     private bool _isExiting;
 
     internal AudioDeviceService Audio => _audio!;
@@ -35,6 +38,12 @@ public partial class App : Application
     internal bool IsHotkeyRegistered => Settings.HotkeyEnabled && _hotkey?.IsRegistered == true;
 
     internal string? HotkeyError => _hotkey?.LastError;
+
+    /// <summary>最近一次检查到的新版本；没有新版本时为 null。</summary>
+    internal UpdateInfo? LatestUpdate => _latestUpdate;
+
+    /// <summary>最近一次检查更新的错误信息。</summary>
+    internal string? UpdateError => _updateError;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -106,6 +115,11 @@ public partial class App : Application
         if (!ApplyHotkey(out string hotkeyMessage))
         {
             Log.Warn($"全局热键不可用：{hotkeyMessage}");
+        }
+
+        if (Settings.AutoCheckUpdates)
+        {
+            _ = CheckForUpdatesAsync(notify: true);
         }
 
         bool silent = Array.Exists(e.Args, a => string.Equals(a, "--tray", StringComparison.OrdinalIgnoreCase));
@@ -240,6 +254,50 @@ public partial class App : Application
     {
         UpdateTrayTooltip();
         Log.Info($"用户切换到 {device.DisplayName} ({device.Id})");
+    }
+
+    /// <summary>检查 GitHub Releases；发现新版本时更新 LatestUpdate，notify 为真时弹托盘气泡。</summary>
+    internal async Task<UpdateInfo?> CheckForUpdatesAsync(bool notify)
+    {
+        if (_updateCheckRunning)
+        {
+            return _latestUpdate;
+        }
+
+        _updateCheckRunning = true;
+        try
+        {
+            UpdateInfo info = await UpdateService.FetchLatestAsync();
+            _updateError = null;
+
+            if (UpdateService.IsNewer(info, UpdateService.CurrentVersion))
+            {
+                bool isFirstNotice = _latestUpdate is null || _latestUpdate.Version != info.Version;
+                _latestUpdate = info;
+                if (notify && isFirstNotice)
+                {
+                    _tray?.ShowBalloon(
+                        $"发现新版本 {info.DisplayVersion}",
+                        "打开设置 → 关于，即可下载并安装。");
+                }
+            }
+            else
+            {
+                _latestUpdate = null;
+            }
+
+            return _latestUpdate;
+        }
+        catch (Exception ex)
+        {
+            _updateError = ex.Message;
+            Log.Warn($"检查更新失败：{ex.Message}");
+            return null;
+        }
+        finally
+        {
+            _updateCheckRunning = false;
+        }
     }
 
     internal void UpdateTrayTooltip()

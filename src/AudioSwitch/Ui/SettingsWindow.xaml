@@ -799,6 +799,50 @@
                                                Text="提示：首次运行时 Windows 可能提示 SmartScreen，这是因为程序没有代码签名，可右键 exe → 属性 → 解除锁定，或选择“仍要运行”。" />
                                 </StackPanel>
                             </Border>
+
+                            <TextBlock Margin="4,10,0,8" Style="{StaticResource SectionLabel}" Text="版本更新" />
+                            <Border Style="{StaticResource GlassCard}">
+                                <StackPanel>
+                                    <Grid>
+                                        <StackPanel>
+                                            <TextBlock Text="自动检查更新" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="启动时在后台检查 GitHub Releases，有新版本会弹出托盘提示" />
+                                        </StackPanel>
+                                        <CheckBox x:Name="AutoCheckUpdatesToggle"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center"
+                                                  Style="{StaticResource ToggleSwitch}"
+                                                  Click="AutoCheckUpdatesToggle_Click" />
+                                    </Grid>
+                                    <TextBlock x:Name="UpdateStatusText"
+                                               Margin="0,14,0,0"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               Text="尚未检查更新。" />
+                                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                        <Button x:Name="CheckUpdateButton"
+                                                Style="{StaticResource GhostButton}"
+                                                Click="CheckUpdateButton_Click"
+                                                Content="检查更新" />
+                                        <Button x:Name="DownloadUpdateButton"
+                                                Margin="4,0,0,0"
+                                                Style="{StaticResource GhostButton}"
+                                                Click="DownloadUpdateButton_Click"
+                                                Content="下载并安装"
+                                                Visibility="Collapsed" />
+                                        <Button x:Name="ReleaseNotesButton"
+                                                Margin="4,0,0,0"
+                                                Style="{StaticResource GhostButton}"
+                                                Click="ReleaseNotesButton_Click"
+                                                Content="查看更新说明"
+                                                Visibility="Collapsed" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

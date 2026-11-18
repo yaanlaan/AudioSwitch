@@ -45,6 +45,8 @@ internal static class Cli
             "--self-test" => RunSelfTest(),
             "--hotkey-test" => RunHotkeyTest(args),
             "--theme-info" => RunThemeInfo(),
+            "--check-update" => RunCheckUpdate(args),
+            "--download-update" => RunDownloadUpdate(args),
             _ => null,
         };
     }
@@ -144,6 +146,64 @@ internal static class Cli
         {
             Print($"ERROR|{ex.GetType().Name}|{ex.Message}");
             Log.Error("--theme-info 失败", ex);
+            return 1;
+        }
+    }
+
+    private static int RunCheckUpdate(string[] args)
+    {
+        Version current = UpdateService.CurrentVersion;
+        if (args.Length > 1 && !string.IsNullOrWhiteSpace(args[1]))
+        {
+            if (!UpdateService.TryParseVersion(args[1], out Version overridden))
+            {
+                Print($"USAGE|无法解析版本号：{args[1]}");
+                return 2;
+            }
+
+            current = overridden;
+        }
+
+        try
+        {
+            UpdateInfo info = UpdateService.FetchLatestAsync().GetAwaiter().GetResult();
+            Print($"CURRENT|{current.ToString(3)}");
+            Print($"LATEST|{info.Version.ToString(3)}|{info.ReleaseUrl}");
+            Print($"SETUP|{info.SetupUrl ?? "-"}");
+            Print(UpdateService.IsNewer(info, current)
+                ? $"CHECK|available|{info.Version.ToString(3)}"
+                : "CHECK|uptodate");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Print($"FAIL|{ex.GetType().Name}|{ex.Message}");
+            Log.Warn($"--check-update 失败：{ex.Message}");
+            return 1;
+        }
+    }
+
+    private static int RunDownloadUpdate(string[] args)
+    {
+        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        {
+            Print("USAGE|--download-update <目标目录>");
+            return 2;
+        }
+
+        try
+        {
+            UpdateInfo info = UpdateService.FetchLatestAsync().GetAwaiter().GetResult();
+            string path = UpdateService.DownloadSetupAsync(info, args[1]).GetAwaiter().GetResult();
+            long size = new System.IO.FileInfo(path).Length;
+            Print($"LATEST|{info.Version.ToString(3)}|{info.ReleaseUrl}");
+            Print($"DOWNLOAD|OK|{path}|{size}");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Print($"DOWNLOAD|FAIL|{ex.GetType().Name}|{ex.Message}");
+            Log.Warn($"--download-update 失败：{ex.Message}");
             return 1;
         }
     }

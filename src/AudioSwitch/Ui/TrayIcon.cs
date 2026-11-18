@@ -32,6 +32,21 @@ public sealed class TrayIcon : IDisposable
         _notifyIcon.Text = trimmed;
     }
 
+    public void ShowBalloon(string title, string message)
+    {
+        try
+        {
+            _notifyIcon.BalloonTipTitle = title;
+            _notifyIcon.BalloonTipText = message;
+            _notifyIcon.BalloonTipIcon = ToolTipIcon.Info;
+            _notifyIcon.ShowBalloonTip(6000);
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"显示托盘通知失败：{ex.Message}");
+        }
+    }
+
     private void OnMouseUp(object? sender, MouseEventArgs e)
     {
         if (e.Button is MouseButtons.Left or MouseButtons.Right or MouseButtons.Middle)

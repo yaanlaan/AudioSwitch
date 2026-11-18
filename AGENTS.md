@@ -27,6 +27,8 @@ $exe = "src\AudioSwitch\bin\Release\net9.0-windows\AudioSwitch.exe"
 & $exe --self-test              # 切换→校验→还原，退出码 0 为通过
 & $exe --hotkey-test "Ctrl+Shift+F9"
 & $exe --theme-info             # 系统主题、强调色、壁纸取色、DWM 磨砂可用性
+& $exe --check-update           # 检查 GitHub Releases（可加版本号参数做比较测试）
+& $exe --download-update D:\Downloads
 
 # 离屏渲染界面截图（无需可见桌面；会写 docs/appearance）
 & $exe --render-all docs\appearance --bg docs\wallpaper.png
@@ -41,7 +43,7 @@ $exe = "src\AudioSwitch\bin\Release\net9.0-windows\AudioSwitch.exe"
 src/AudioSwitch/
   Interop/       Core Audio、IPolicyConfig、DWM/SWC、Win32 互操作
   Audio/         设备枚举、默认设备读写、角色处理
-  Services/      SettingsStore、Log、Autostart、SingleInstance、Cli
+  Services/      SettingsStore、Log、Autostart、SingleInstance、Cli、UpdateService
   Ui/            ThemeService、Palette、Backgrounds、TrayIcon、GlobalHotkey、
                  SettingsWindow、SwitcherPopup、DeviceItem、DevRenderer
   Assets/        app.ico / app.png（由 tools/make_icon.py 生成）
@@ -58,6 +60,7 @@ docs/appearance/ 由 --render-all 生成的界面截图
 - **主题**：所有颜色/画刷只定义在 `Ui/Palette.xaml`，`ThemeService` 在运行时替换资源（明暗、强调色、卡片透明度、背景图）。XAML 一律使用 `{DynamicResource XxxBrush}`。
 - **窗口材质**：设置窗与切换弹窗都有 `TintLayer / BackgroundImageLayer / ScrimLayer` 三层背景；新窗口需复用该结构并调用 `ThemeService.ApplyWindowEffects(window)`。
 - **设备切换**：只通过 `AudioDeviceService.SetDefault(id, includeCommunications)` / `SetRoleDefault` 修改三个角色；UI 层不要直接 P/Invoke 音频接口。
+- **更新检查**：`Services/UpdateService` 访问 GitHub Releases API（`yaanlaan/AudioSwitch`），`App.CheckForUpdatesAsync` 负责缓存 `LatestUpdate` 与错误、托盘提示；“关于”页负责展示、下载（默认 `%LOCALAPPDATA%\AudioSwitch\updates`）并启动安装包。发布时资产名必须是 `AudioSwitch-Setup-<版本>.exe`，否则更新下载找不到。
 - **CLI**：输出格式为稳定的 `KEY|value` 行，供脚本与自检解析。新增命令需在 `Cli.TryRun`（或 `App` 的 `--render` 分支）注册，并同步 README「命令行」章节。
 
 ## 编码约定
@@ -81,6 +84,7 @@ docs/appearance/ 由 --render-all 生成的界面截图
 6. **NSIS 打包**：`installer/installer.nsi` 必须保存为 UTF-8 **带 BOM**；`makensis` 需要可写的 `TEMP/TMP`；改安装逻辑后必须重跑 `scripts/build-installer.ps1` 并做静默安装/卸载验证。
 7. **受限环境下文件写入可能被拒**：应用写 `%APPDATA%`/`%TEMP%` 失败时日志会静默跳过，此时以 CLI 输出为准。
 8. **版本号**：`csproj` 的 `<Version>` 是唯一来源，打包脚本会读取它；发版时同步 README 下载链接与更新记录。
+9. **更新检查依赖网络与资产命名**：GitHub API 偶发 SSL 握手失败，`UpdateService` 已用 `SendWithRetryAsync` 重试 3 次；不要改成强制 HTTP/1.1（release-assets 需要 HTTP/2，会稳定失败）。Release 资产名必须匹配 `AudioSwitch-Setup-*.exe`，否则查得到版本却下载不到。
 
 ## 修改后的验收清单
 
@@ -112,4 +116,4 @@ docs/appearance/ 由 --render-all 生成的界面截图
 - 在代码、脚本、文档中写入真实用户名或本机绝对路径。
 - 为测试永久修改默认音频设备、热键、开机自启或 `settings.json`。
 - 手工编辑 `Assets/app.ico`、`docs/appearance/*.png`：分别用 `tools/make_icon.py` 与 `--render-all` 生成。
-- 引入遥测、联网请求或新的运行时依赖。
+- 引入遥测、新的运行时依赖，或除更新检查（`UpdateService` → GitHub Releases）之外的其他联网请求。

@@ -52,7 +52,9 @@ public partial class SwitcherPopup : Window
         DeviceList.ItemContainerStyle = (Style)FindResource(_cards ? "CardItemStyle" : "RowItemStyle");
         DeviceList.ItemTemplate = (DataTemplate)FindResource(_cards ? "CardTemplate" : "RowTemplate");
         DeviceList.ItemsPanel = (ItemsPanelTemplate)FindResource(_cards ? "CardPanelTemplate" : "RowPanelTemplate");
-        KeyHintText.Text = _cards ? "方向键选择 · Enter 切换 · Esc 关闭" : "Enter 切换 · Esc 关闭";
+        KeyHintText.Text = _cards
+            ? "方向键 / Tab 切换 · Enter 确认 · Esc 关闭"
+            : "↑↓ / Tab 切换 · Enter 确认 · Esc 关闭";
     }
 
     private int ColumnsFor(int count)
@@ -141,6 +143,20 @@ public partial class SwitcherPopup : Window
                 }
 
                 return;
+            case Key.Tab:
+                SelectRelative(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : 1);
+                e.Handled = true;
+                return;
+            case Key.Left:
+            case Key.Up:
+                SelectRelative(-1);
+                e.Handled = true;
+                return;
+            case Key.Right:
+            case Key.Down:
+                SelectRelative(1);
+                e.Handled = true;
+                return;
         }
 
         int index = e.Key switch
@@ -156,6 +172,23 @@ public partial class SwitcherPopup : Window
             DeviceList.ScrollIntoView(DeviceList.SelectedItem);
             e.Handled = true;
         }
+    }
+
+    private void SelectRelative(int delta)
+    {
+        int count = DeviceList.Items.Count;
+        if (count == 0)
+        {
+            return;
+        }
+
+        int current = DeviceList.SelectedIndex;
+        int next = current < 0
+            ? (delta > 0 ? 0 : count - 1)
+            : ((current + delta) % count + count) % count;
+
+        DeviceList.SelectedIndex = next;
+        DeviceList.ScrollIntoView(DeviceList.SelectedItem);
     }
 
     private void RefreshDevices()

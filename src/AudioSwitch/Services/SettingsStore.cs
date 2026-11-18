@@ -63,6 +63,9 @@ public sealed class AppSettings
     /// <summary>是否启用全局热键。</summary>
     public bool HotkeyEnabled { get; set; } = true;
 
+    /// <summary>启动时是否在后台检查 GitHub Releases 更新。</summary>
+    public bool AutoCheckUpdates { get; set; } = true;
+
     public bool IsDarkThemeFixed => string.Equals(ThemeMode, "dark", StringComparison.OrdinalIgnoreCase);
 
     public bool IsLightThemeFixed => string.Equals(ThemeMode, "light", StringComparison.OrdinalIgnoreCase);

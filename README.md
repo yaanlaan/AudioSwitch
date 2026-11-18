@@ -9,14 +9,14 @@
 
 *A tiny tray utility for switching the default Windows audio output device — with a Win11-style Alt+Tab picker, dark/light themes, acrylic cards and global hotkey.*
 
-v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分类导航，以及类似 Win11 Alt+Tab 的磁贴式切换弹窗。
+v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分类导航，以及类似 Win11 Alt+Tab 的磁贴式切换弹窗。v1.3 增加了 `Tab` 循环选择与内置更新检查。
 
 ## 下载
 
 | 方式 | 文件 | 说明 |
 | --- | --- | --- |
-| **安装版（推荐）** | [AudioSwitch-Setup-1.2.4.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.2.4.exe) | 按用户安装，写入开始菜单与卸载项；启动时请求一次 UAC |
-| 免安装 | [AudioSwitch-Portable-1.2.4.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.2.4.zip) | 解压即用，不写注册表、不需要管理员 |
+| **安装版（推荐）** | [AudioSwitch-Setup-1.3.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.3.0.exe) | 按用户安装，写入开始菜单与卸载项；启动时请求一次 UAC |
+| 免安装 | [AudioSwitch-Portable-1.3.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.3.0.zip) | 解压即用，不写注册表、不需要管理员 |
 | 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 两个产物的 SHA-256 |
 
 所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，首次运行时 Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
@@ -29,7 +29,7 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 ## 功能
 
 - **托盘常驻**：左键或右键点击托盘图标，立刻弹出设备选择器；再次点击或按 `Esc`、点击别处即可关闭。
-- **磁贴式切换器**：默认按 Alt+Tab 风格把设备排成圆角磁贴，当前设备有强调色边框和「当前」徽标；支持方向键、数字键 `1`–`9` 选择，`Enter` 切换，`Esc` 关闭。也可以切回紧凑的列表样式。
+- **磁贴式切换器**：默认按 Alt+Tab 风格把设备排成圆角磁贴，当前设备有强调色边框和「当前」徽标；支持方向键、`Tab` / `Shift+Tab`、数字键 `1`–`9` 选择（首尾循环），`Enter` 切换，`Esc` 关闭。也可以切回紧凑的列表样式。
 - **单击切换**：单击任意设备立即切换系统默认输出设备，切换后可自动关闭弹窗。
 - **全局热键**：默认 `Ctrl+Alt+A`。设置里点一下录制框，**直接按下想要的组合键**即可生效；可随时关闭热键。
 - **分类设置页**：常规 / 外观 / 切换弹窗 / 快捷键 / 关于，功能不再堆在一页。
@@ -43,6 +43,7 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 - **开机自启**：登录 Windows 后在托盘静默启动，不打扰桌面。
 - **关闭到托盘**：点窗口右上角关闭时默认最小化到托盘，需要彻底退出时使用弹窗底部的「退出」。
 - **单实例**：重复启动不会开出第二个进程，而是让已运行的实例弹出设备选择器。
+- **检查更新**：设置 → 关于可手动检查 GitHub Releases；发现新版本可下载并启动安装程序，也可以开启启动时自动检查。
 - **高 DPI**：适配多显示器、不同缩放比例。
 
 ## 系统要求
@@ -54,7 +55,7 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 
 ## 安装（推荐）
 
-[AudioSwitch-Setup-1.2.4.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.2.4.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
+[AudioSwitch-Setup-1.3.0.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.3.0.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
 
 1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。
 2. 随后会出现 **UAC 管理员确认框**，点「是」。安装程序以管理员权限运行，避免从浏览器/聊天窗口打开时被系统限制成低权限、导致写入失败。
@@ -71,8 +72,8 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 也可以静默安装（适合脚本；仍会请求管理员权限，请在管理员 PowerShell 中执行）：
 
 ```powershell
-AudioSwitch-Setup-1.2.4.exe /S
-AudioSwitch-Setup-1.2.4.exe /S /D=C:\Tools\AudioSwitch
+AudioSwitch-Setup-1.3.0.exe /S
+AudioSwitch-Setup-1.3.0.exe /S /D=C:\Tools\AudioSwitch
 ```
 
 卸载：开始菜单 → AudioSwitch → 「卸载 AudioSwitch」，或「设置 → 应用 → 已安装的应用」中找到 AudioSwitch（卸载同样会请求一次 UAC）。
@@ -81,7 +82,7 @@ AudioSwitch-Setup-1.2.4.exe /S /D=C:\Tools\AudioSwitch
 
 ### 便携版
 
-[AudioSwitch-Portable-1.2.4.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.2.4.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
+[AudioSwitch-Portable-1.3.0.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Portable-1.3.0.zip) 解压即用（同样是文件夹形式，不含单文件自解压）。
 
 解压后如果仍提示 SmartScreen，对该目录执行一次：
 
@@ -133,7 +134,7 @@ Get-ChildItem -Recurse -File | Unblock-File
 安装后从开始菜单或桌面快捷方式启动，程序会打开设置窗口，同时托盘出现图标。
 
 1. 点击托盘图标（或按 `Ctrl+Alt+A`）打开设备选择器。
-2. 点击目标设备（或用方向键选择后按 `Enter`）即可切换。
+2. 点击目标设备（或用方向键 / `Tab` 循环选择后按 `Enter`）即可切换。
 3. 需要修改热键、外观、弹窗布局时，在设置窗口左侧切换分类。
 
 ### 设置页
@@ -144,7 +145,7 @@ Get-ChildItem -Recurse -File | Unblock-File
 | 外观 | 明暗主题、配色来源与色板、窗口材质、卡片不透明度、背景图片、不透明度、模糊 |
 | 切换弹窗 | 磁贴/列表样式、每行数量、弹出位置、显示设备图标、切换后自动关闭、淡入动画、预览 |
 | 快捷键 | 启用/关闭全局热键、录制组合键、恢复默认 |
-| 关于 | 版本、配置文件与日志位置、解除文件锁定、打开日志/声音设置、SmartScreen 说明 |
+| 关于 | 版本、配置文件与日志位置、检查更新、解除文件锁定、打开日志/声音设置、SmartScreen 说明 |
 
 ### 主要设置项
 
@@ -166,6 +167,7 @@ Get-ChildItem -Recurse -File | Unblock-File
 | 开机自动启动 | 写入当前用户的 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，以 `--tray` 参数静默启动 |
 | 关闭窗口时最小化到托盘 | 关闭时隐藏窗口而不是退出程序 |
 | 同时设置通信设备 | 切换时把 `eCommunications` 角色也切换到同一设备 |
+| 自动检查更新 | 启动时在后台查询 GitHub Releases；发现新版本会弹托盘提示，可在「关于」页下载并安装 |
 
 强调色会在明暗主题下自动调整明度与饱和度，避免 Windows 主题色过暗导致看不清。
 
@@ -227,6 +229,13 @@ AudioSwitch.exe --hotkey-test "F8"
 # 查看系统主题、强调色、壁纸取色与 DWM 磨砂是否可用
 AudioSwitch.exe --theme-info
 
+# 检查 GitHub 上是否有新版本（输出 CURRENT / LATEST / SETUP / CHECK）
+AudioSwitch.exe --check-update
+AudioSwitch.exe --check-update 1.2.0   # 用指定版本号做比较测试
+
+# 下载最新版安装包到指定目录（不运行）
+AudioSwitch.exe --download-update D:\Downloads
+
 # 托盘静默启动（供开机自启使用）
 AudioSwitch.exe --tray
 ```
@@ -250,6 +259,17 @@ SETTINGS|theme=system|color=system|accent=#5B9DFF|material=acrylic|opacity=0.55|
 SAMPLE|...|accent=#09232B|avg=#09232B|luminance=0.12|fallback=0
 BACKDROP|acrylic|OK|backdrop=acrylic
 ```
+
+`--check-update` 输出形如：
+
+```text
+CURRENT|1.3.0
+LATEST|1.3.0|https://github.com/yaanlaan/AudioSwitch/releases/tag/v1.3.0
+SETUP|https://github.com/yaanlaan/AudioSwitch/releases/download/v1.3.0/AudioSwitch-Setup-1.3.0.exe
+CHECK|uptodate
+```
+
+`CHECK|available|<版本>` 表示有新版本；网络失败时输出 `FAIL|<类型>|<原因>`、退出码 1。
 
 ## 从源码构建
 
@@ -352,9 +372,10 @@ docs/appearance/    外观预览图
 
 ## 更新记录
 
-- **1.2.4** — 安装程序声明 equireAdministrator，启动即请求 UAC，彻底避免低权限导致的写入失败；安装前做写入测试，失败时给出可操作提示。
+- **1.3.0** — 切换弹窗支持 `Tab` / `Shift+Tab` 与方向键首尾循环选择；「关于」页新增更新检查，可下载并启动新版本安装包，支持启动时自动检查。
+- **1.2.4** — 安装程序声明 `requireAdministrator`，启动即请求 UAC，彻底避免低权限导致的写入失败；安装前做写入测试，失败时给出可操作提示。
 - **1.2.3** — 检测低完整性级别（...\Temp\Low）环境，提示以管理员身份重启安装。
-- **1.2.2** — 负载先解压到临时目录，再用带重试的 obocopy 整体复制并校验关键文件，避免单个 DLL 被安全软件瞬时锁定。
+- **1.2.2** — 负载先解压到临时目录，再用带重试的 `robocopy` 整体复制并校验关键文件，避免单个 DLL 被安全软件瞬时锁定。
 - **1.2.1** — 新增 NSIS 安装程序与便携版 zip。
 - **1.2.0** — 界面重构：无缝标题栏、磨砂卡片、左侧分类设置页、Alt+Tab 磁贴弹窗及外观参数、SmartScreen 一键解除。
 - **1.1.0** — 热键按下即录制、明暗主题、磨砂玻璃、背景图片、配色三来源。
@@ -365,9 +386,9 @@ docs/appearance/    外观预览图
 - 问题反馈、功能建议：[Issues](https://github.com/yaanlaan/AudioSwitch/issues)
 - 提交代码前建议运行：
 
-  `powershell
+  ```powershell
   dotnet build AudioSwitch.sln -c Release
   src\AudioSwitch\bin\Release\net9.0-windows\AudioSwitch.exe --self-test
-  `
+  ```
 
-- 界面改动可以用 --render-all docs\appearance --bg docs\wallpaper.png 生成全部截图后再提交。
+- 界面改动可以用 `--render-all docs\appearance --bg docs\wallpaper.png` 生成全部截图后再提交。
