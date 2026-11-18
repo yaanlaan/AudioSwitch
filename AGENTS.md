@@ -49,7 +49,7 @@ src/AudioSwitch/
                  SettingsWindow、SwitcherPopup、ColorPickerDialog、DeviceItem、DevRenderer
   Assets/        app.ico / app.png（由 tools/make_icon.py 生成）
 installer/       NSIS 安装脚本（默认完整版，/DLITE 为精简版）
-scripts/         publish.ps1（单文件）、build-installer.ps1（完整版/精简版安装包+便携版）
+scripts/         publish.ps1（单文件）、build-installer.ps1（完整版/精简版安装包+便携版）、install-latest.ps1（一键下载校验并提权安装）
 tools/           图标与示例壁纸生成脚本（Pillow / numpy，仅开发期）
 docs/appearance/ 由 --render-all 生成的界面截图
 ```
@@ -90,6 +90,7 @@ docs/appearance/ 由 --render-all 生成的界面截图
 8. **版本号**：`csproj` 的 `<Version>` 是唯一来源，打包脚本会读取它；发版时同步 README 下载链接与更新记录。
 9. **更新检查依赖网络与资产命名**：GitHub API 偶发 SSL 握手失败，`UpdateService` 已用 `SendWithRetryAsync` 重试 3 次；不要改成强制 HTTP/1.1（release-assets 需要 HTTP/2，会稳定失败）。Release 资产名必须匹配 `AudioSwitch-Setup-*.exe`，否则查得到版本却下载不到。
 10. **托盘在非交互桌面不可用**：`--tray-test` 在服务会话、无可见桌面的沙箱/远程环境会返回 `Win32 错误 5`（拒绝访问），这是环境限制而非代码缺陷；真实登录桌面正常。不要为此改回 WinForms 或在启动时弹错误框。
+11. **SmartScreen 不能靠代码绕过**：未签名 exe 带 Mark-of-the-Web 时，Windows 必定显示「未知发布者」。不要用改扩展名、重新打包成 ISO、自签名证书或自动加 Defender 排除项来规避。唯一正规方式是受信任 CA 的代码签名（`build-installer.ps1` 的 `-SigningThumbprint` / `-PfxPath`），面向普通用户可引导使用 `scripts/install-latest.ps1`（PowerShell 下载不带 MOTW，只剩 UAC）。说明见 `docs/SIGNING.md`。
 
 ## 修改后的验收清单
 
@@ -108,12 +109,12 @@ docs/appearance/ 由 --render-all 生成的界面截图
 1. 修改 `src/AudioSwitch/AudioSwitch.csproj` 的 `<Version>`。
 2. 更新 README 下载链接、更新记录与截图（如界面有变）。
 3. 构建并跑完上面的验收清单。
-4. 生成产物：
+4. 生成产物（有代码签名证书时加 `-SigningThumbprint` 或 `-PfxPath`，见 `docs/SIGNING.md`）：
    ```powershell
-   pwsh -File scripts\build-installer.ps1   # Setup/Portable + Lite-Setup/Lite 四个产物
+   pwsh -File scripts\build-installer.ps1   # Setup/Portable + Lite-Setup/Lite 四个产物，自动生成 SHA256SUMS.txt
    pwsh -File scripts\publish.ps1           # 可选：单文件 dist\AudioSwitch.exe
    ```
-5. 生成 `dist\SHA256SUMS.txt`（四个产物的 SHA-256）。
+5. 核对 `dist\SHA256SUMS.txt`（脚本自动生成，四个产物的 SHA-256）。
 6. `git add/commit`，打标签 `vX.Y.Z` 并推送。
 7. `gh release create vX.Y.Z --title ... --notes-file ...`，上传 Setup、Lite-Setup、Portable、Lite zip、SHA256SUMS（共五个资产）。
 

@@ -7,9 +7,19 @@
 #   dist\AudioSwitch-Portable-<版本>.zip     完整版便携包（解压即用）
 #   dist\AudioSwitch-Lite-Setup-<版本>.exe   精简版安装程序（约 1 MB，需要 .NET 9 桌面运行时）
 #   dist\AudioSwitch-Lite-<版本>.zip         精简版便携包
+#   dist\SHA256SUMS.txt                      四个产物的 SHA-256
+#
+# 代码签名（可选，强烈建议发布前签，消除“未知发布者”与 SmartScreen 提示）：
+#   pwsh -File scripts\build-installer.ps1 -SigningThumbprint <证书指纹>
+#   pwsh -File scripts\build-installer.ps1 -PfxPath cert.pfx -PfxPassword <密码>
+# 需要 Windows SDK 的 signtool.exe；未提供证书时跳过签名。
 param(
     [string]$Configuration = 'Release',
-    [string]$Runtime = 'win-x64'
+    [string]$Runtime = 'win-x64',
+    [string]$SigningThumbprint,
+    [string]$PfxPath,
+    [string]$PfxPassword,
+    [string]$TimestampUrl = 'http://timestamp.digicert.com'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,6 +28,46 @@ Set-Location $root
 
 $version = (Select-String -Path 'src\AudioSwitch\AudioSwitch.csproj' -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
 if (-not $version) { throw '无法从 csproj 读取版本号' }
+
+$signingEnabled = [bool]($SigningThumbprint -or $PfxPath)
+
+function Get-SignToolPath {
+    $command = Get-Command 'signtool.exe' -ErrorAction SilentlyContinue
+    if ($command) { return $command.Source }
+    $kitsRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+    if (Test-Path $kitsRoot) {
+        foreach ($dir in (Get-ChildItem $kitsRoot -Directory | Sort-Object Name -Descending)) {
+            $candidate = Join-Path $dir.FullName 'x64\signtool.exe'
+            if (Test-Path $candidate) { return $candidate }
+        }
+    }
+    return $null
+}
+
+$signTool = if ($signingEnabled) { Get-SignToolPath } else { $null }
+if ($signingEnabled -and -not $signTool) {
+    throw '找不到 signtool.exe，请安装 Windows SDK 后重试，或不带签名参数构建'
+}
+
+function Sign-Artifact([string]$path) {
+    if (-not $signingEnabled) { return }
+    $arguments = @('sign', '/fd', 'SHA256', '/tr', $TimestampUrl, '/td', 'SHA256')
+    if ($SigningThumbprint) {
+        $arguments += @('/sha1', $SigningThumbprint)
+    } else {
+        $arguments += @('/f', $PfxPath)
+        if ($PfxPassword) { $arguments += @('/p', $PfxPassword) }
+    }
+    $arguments += $path
+    & $signTool @arguments
+    if ($LASTEXITCODE -ne 0) { throw "签名失败：$path" }
+    $signature = Get-AuthenticodeSignature -FilePath $path
+    if ($signature.Status -ne 'Valid') {
+        Write-Warning "签名状态为 $($signature.Status)：$path"
+    } else {
+        Write-Host "已签名：$path（$($signature.SignerCertificate.Subject)）"
+    }
+}
 
 Write-Host "AudioSwitch $version：结束正在运行的实例"
 Get-Process AudioSwitch -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -38,6 +88,10 @@ dotnet publish 'src\AudioSwitch\AudioSwitch.csproj' -c $Configuration -r $Runtim
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish（精简版）失败' }
 
 Get-ChildItem $appDir, $liteDir -Filter '*.pdb' -ErrorAction SilentlyContinue | Remove-Item -Force
+
+# 先签主程序，安装后的 exe 与便携包内都带签名
+Sign-Artifact (Join-Path $appDir 'AudioSwitch.exe')
+Sign-Artifact (Join-Path $liteDir 'AudioSwitch.exe')
 
 $distDir = Join-Path $root 'dist'
 New-Item -ItemType Directory -Force $distDir | Out-Null
@@ -87,6 +141,17 @@ $setupPath = Join-Path $distDir "AudioSwitch-Setup-$version.exe"
 $liteSetupPath = Join-Path $distDir "AudioSwitch-Lite-Setup-$version.exe"
 if (-not (Test-Path $setupPath)) { throw "安装程序未生成：$setupPath" }
 if (-not (Test-Path $liteSetupPath)) { throw "精简版安装程序未生成：$liteSetupPath" }
+
+# 安装程序签名（决定 SmartScreen 与“未知发布者”提示）
+Sign-Artifact $setupPath
+Sign-Artifact $liteSetupPath
+
+# 生成 SHA256SUMS.txt，供发布与一键安装脚本校验
+$sums = foreach ($file in @($setupPath, $liteSetupPath, $portablePath, $liteZipPath)) {
+    $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
+    "$hash *$(Split-Path -Leaf $file)"
+}
+Set-Content -Path (Join-Path $distDir 'SHA256SUMS.txt') -Value $sums -Encoding ascii
 
 function Format-Size([long]$bytes) { '{0:N1} MB' -f ($bytes / 1MB) }
 

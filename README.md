@@ -21,7 +21,28 @@ v1.2 重新设计了界面：自绘的无缝标题栏、磨砂卡片、左侧分
 | 精简免安装 | [AudioSwitch-Lite-1.4.1.zip](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Lite-1.4.1.zip) | 约 0.3 MB，需要 .NET 9 桌面运行时 |
 | 校验 | [SHA256SUMS.txt](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/SHA256SUMS.txt) | 所有产物的 SHA-256 |
 
-所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，首次运行时 Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
+所有版本见 [Releases](https://github.com/yaanlaan/AudioSwitch/releases)。程序没有代码签名，从浏览器下载后首次运行，Windows 可能提示「未知发布者」，原因与处理方式见下文「关于『Windows 已保护你的电脑』与 Defender」。
+
+### 一键安装（不触发 SmartScreen）
+
+如果不想先用浏览器下载 exe，可以在 PowerShell 中执行：
+
+```powershell
+irm https://raw.githubusercontent.com/yaanlaan/AudioSwitch/main/scripts/install-latest.ps1 | iex
+```
+
+脚本会从 Releases 下载完整版安装包、用 `SHA256SUMS.txt` 校验 SHA-256，再以管理员身份静默安装；你只需要在 UAC 窗口点「是」。文件由 PowerShell 直接写入，不带「来自 Internet」标记，因此不会出现 SmartScreen 的「更多信息 → 仍要运行」。
+
+需要精简版或自定义目录时：
+
+```powershell
+$s = irm https://raw.githubusercontent.com/yaanlaan/AudioSwitch/main/scripts/install-latest.ps1
+& ([scriptblock]::Create($s)) -Flavor lite
+& ([scriptblock]::Create($s)) -Flavor full -InstallDir D:\Tools\AudioSwitch
+```
+
+> 想彻底消除手动下载时的 SmartScreen 提示，需要给安装程序做代码签名。构建脚本已支持签名参数，见 [docs/SIGNING.md](docs/SIGNING.md)。
+
 
 ![设置窗口（深色 · 常规）](docs/appearance/settings-dark-solid.png)
 
@@ -75,7 +96,7 @@ v1.4 移除了 WinForms 依赖（托盘改用 `Shell_NotifyIcon`，自定义颜�
 
 [AudioSwitch-Setup-1.4.1.exe](https://github.com/yaanlaan/AudioSwitch/releases/latest/download/AudioSwitch-Setup-1.4.1.exe)（或其它版本 `AudioSwitch-Setup-<版本>.exe`）是按用户安装的安装程序：
 
-1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。
+1. 双击安装程序；如果 Windows 弹出 SmartScreen，点「更多信息 → 仍要运行」（**只有安装程序本身会提示**）。不想出现这一步，可用上文的「一键安装」命令。
 2. 随后会出现 **UAC 管理员确认框**，点「是」。安装程序以管理员权限运行，避免从浏览器/聊天窗口打开时被系统限制成低权限、导致写入失败。
 3. 选择安装目录（默认 `%LOCALAPPDATA%\Programs\AudioSwitch`），可选「创建桌面快捷方式」「开机自动启动」。
 4. 安装完成后勾选「立即启动 AudioSwitch」。
@@ -136,7 +157,7 @@ Get-ChildItem -Recurse -File | Unblock-File
 4. **查看日志**：`%APPDATA%\AudioSwitch\audioSwitch.log`（如果程序能启动到写日志阶段）。
 5. 仍然不行时，换一个非系统盘目录（如 `D:\Tools\AudioSwitch`）解压便携版再运行。
 
-消除提示的长期办法只有**代码签名**（OV/EV 证书）；自签名证书对 SmartScreen 无效。
+消除提示的长期办法只有**代码签名**（OV/EV 证书）；自签名证书对 SmartScreen 无效。具体的证书选择、签名命令与验证方式见 [docs/SIGNING.md](docs/SIGNING.md)，构建脚本已支持 `-SigningThumbprint` / `-PfxPath` 参数。
 
 ### 安装时报「无法打开要写入的文件：…\Accessibility.dll」
 
